@@ -1,0 +1,402 @@
+@import '/asset/css/constants.css';
+
+
+/* common */
+header,
+footer {
+	background-color: white;
+	z-index: 1;
+}
+
+.sub_menu {
+	display: none;
+}
+
+.show {
+	display: block;
+}
+
+.board_article {
+	box-sizing: border-box;
+	padding: 15px;
+}
+/* header */
+header {
+	box-sizing: border-box;
+	min-height: var(--body-hd-vh);
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.5rem 2rem;
+	border-bottom: 1px solid var(--color-hr-dark);
+}
+
+header #header_logo {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-decoration: none;
+	font-size: 1.5em;
+}
+
+header #header_logo_img {
+	width: var(--header-logo-size);
+	height: var(--header-logo-size);
+}
+
+#header_menu {
+	display: flex;
+	align-items: center;
+}
+
+#header_sub_menu {
+	position: absolute;
+	border: 1px solid black;
+	background-color: var(--bgcr-white);
+	margin-right: 32px;
+	top: 100%;
+	right: 0;
+}
+
+#header_menu > li {
+	margin-left: 12px;
+}
+
+#header_menu > li > a,
+#header_menu > li > span,
+#header_sub_menu > li > a {
+	display: block;
+	padding: 8px 12px;
+}
+#header_sub_menu > li > a {
+	text-align: left;
+}
+
+#header_menu > li:hover,
+#header_sub_menu > li:hover {
+	background-color: var(--bgcr-middle-dark);
+}
+
+#header_menu > li:hover {
+	border-radius: 4px;	
+}
+
+#header_menu > li:hover > a,
+#header_sub_menu > li:hover > a {
+	color: var(--color-white);
+}
+
+/* header 로그인한 경우 추가 메뉴 */
+#header_menu > #header_profile_img:hover,
+#header_menu > #header_alarm:hover {
+	background-color: transparent;
+	border-radius: 0;
+}
+
+#header_menu #header_profile_img {
+	position: relative;
+}
+
+#header_menu #header_profile_img #menu_toggle_btn {
+	display: block;
+	position: absolute;
+	top: 73%;
+	padding: 0;
+	right: 0;
+	border: 1px solid black;
+	background-color: white;
+	cursor: pointer;
+}
+
+#header_menu #header_profile_img #menu_toggle_btn > i {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	width: 15px;
+	height: 15px;
+}
+
+
+#header_menu > #header_alarm:hover > .desktop.change {
+	color: black;
+}
+
+#header_menu > #header_profile_img img,
+#header_menu > #header_profile_img > a {
+	width: 55px;
+	height: 55px;
+	border-radius: 50%;
+}
+
+#header_menu > #header_alarm {
+	position: relative;
+}
+
+#header_menu > #header_alarm:after {
+	display: block;
+	position: absolute;
+	top: 0.1rem;
+	right: 0.1rem;
+	content: "";
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background-color: red;
+}
+
+
+#header_menu .mobile.change {
+	display: none;
+}
+
+/* head navbar_toogleBtn*/
+.navbar_togleBtn {
+	display: none;
+	font-size: 24px;
+}
+
+/* content area */
+.root_container {
+	position: relative;
+	margin: 0 auto;
+	height: 100%;
+	width: 100%;
+}
+
+.content_wrapper {
+	display: flex;
+	min-height: 100%;
+	margin: calc(var(--body-hd-vh)*-1 - 2px) 0 calc(var(--body-ft-vh)*-1);
+	background-color: var(--bgcr-semi-white);
+}
+
+article {
+	min-height: 100%;
+	width: 100%;
+	padding: var(--body-hd-vh) 0 var(--body-ft-vh);
+}
+
+.board_article {
+	margin: 0 auto;
+	height: 100%;
+	width: 80%;
+	max-width: 1050px;
+	border: solid var(--color-hr-dark);
+	border-width: 0 1px;
+	background-color: var(--bgcr-white);
+}
+
+/* footer */
+footer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	border-top: 1px solid var(--color-hr-dark);
+	min-height: var(--body-ft-vh);
+}
+
+footer a{
+	display: inline-block;
+	color: var(--color-a-blue);
+	text-decoration: none;
+}
+
+footer a:visited {
+	color: var(--color-a-blue);
+}
+
+footer p {
+	margin-top: 10px;
+	margin-bottom: 0;
+}
+
+footer p span {
+	display: inline-block;
+}
+footer nav > span > a > i {
+	padding-right: 2.5px;
+}
+footer nav {
+	display: flex;
+}
+footer nav > span > a {
+	border: 1px solid transparent;
+}
+footer nav > span > a:hover {
+	border-bottom-color: var(--color-a-blue);
+}
+footer nav > span::after,
+footer p > span::after {
+	content: "|";
+	padding: 0 10px;
+}
+
+footer nav > span:last-child::after,
+footer p > span:last-child::after {
+	content: none;
+}
+
+/* util btn */
+.mode_btn,
+.move_btn {
+	position: fixed;
+	bottom: 19px;
+	line-height: 16px;
+	background-color: white;
+	outline: none;
+	border: none;
+	box-shadow: 0 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.1);
+	height: 51px;
+	cursor: pointer;
+}
+
+.mode_btn {
+	font-size: 12px;
+	width: 148px;
+	right: 88px;
+	border-radius: 50px;
+}
+
+.mode_btn > span {
+	margin-right: 5px;
+}
+
+.move_btn {
+	width: 51px;
+	right: 20px;
+	border-radius: 50%;
+}
+
+.mode_btn:hover,
+.move_btn:hover {
+	background-color: var(--bgcr-middle-dark);
+	color: var(--color-white);
+	box-shadow: 0 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.1);
+}
+/* relative */
+@media screen and (max-width: 1000px) {
+	.board_article {
+		width: 100%;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.member_alarm {
+		top: 50%;
+		transform : translateY(-50%);
+		right: 5px;
+		border-radius: 3px;
+	}
+	
+	header{
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+	}
+
+	#header_menu {
+		display: none;
+		flex-direction: column-reverse;
+		align-items: center;
+		width: 100%;
+	}
+	
+	#header_menu li {
+		width: 100%;
+		text-align: center;
+		padding-left: 0;
+		padding-right: 0;
+		margin-left: 0;
+	}
+	
+	#header_menu li a {
+		display: block;
+		width: 100%;
+	}
+	
+	
+	#header_info {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
+		align-items: center;
+	}
+	
+	#header_menu.active {
+		display: flex;
+	}
+	
+	.navbar_togleBtn {
+		display: block;
+	}
+	
+	.board_article {
+		border: none;
+	}
+	
+	/* 헤더 추가메뉴 */
+	#header_menu .mobile.change {
+		display: block;
+	}
+	
+	
+	#header_menu #header_profile_img {
+		display: flex;
+		padding: 8px 0;
+		border-bottom: 1px solid black;
+	}
+	
+	#header_menu #header_profile_img #header_profile_intro {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		align-items: center;
+	}
+	
+	#header_menu #header_alarm {
+		margin-top: 8px;
+	}
+	
+	#header_menu .desktop.change {
+		display: none;
+	}
+	
+	#header_menu > #header_alarm:after {
+		content: "+9";
+		color: white;
+		font-size: 16px;
+		right: 5%;
+		top: 50%;
+		transform: translateY(-50%);
+		border-radius: 3px;
+		width: 25px;
+		height: 20px;
+	}
+	
+	#header_menu > #header_alarm:hover {
+		background-color: var(--bgcr-middle-dark);
+		border-radius: 4px;
+	}
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

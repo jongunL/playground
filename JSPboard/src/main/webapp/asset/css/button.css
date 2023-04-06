@@ -1,0 +1,47 @@
+.btn {
+	width: 90px;
+	height: 35px;
+	padding: 6px 12px;
+	font-size: 15px;
+	border: none;
+	border-radius: 2.5%;
+	color: white;
+	text-decoration: none;
+	margin-left: 10px;
+}
+
+.btn.btn_primary {
+	background-color: rgb(0, 123, 255);
+}
+
+.btn.btn_primary:hover {
+	background-color: rgb(0, 98, 204);
+}
+
+.btn.btn_primary:active, .btn.btn_primary:focus {
+	box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.5);
+}
+
+.btn.btn_primary:active {
+	background-color: rgb(0, 98, 204);
+}
+
+.btn.btn_success {
+	background-color: rgb(40, 167, 69);
+}
+
+.btn.btn_success:hover {
+	background-color: rgb(32, 134, 55);
+}
+
+.btn.btn_success:active, .btn.btn_success:focus {
+	box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.5);
+}
+
+.btn.btn_success:active {
+	background-color: rgb(32, 134, 55);
+}
+
+.btn.btn_primary:focus, .btn.btn_success:focus {
+	outline: none;
+}
