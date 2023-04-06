@@ -13,7 +13,7 @@ import javax.mail.internet.MimeMessage;
 public class VerifyEmail {
 	// 1. 발신자의 메일 계정과 비밀번호 설정
 	final static String user = "joungun4059@gmail.com";
-	final static String serialNum = "peeaazplguwsxgwt";
+	final static String serialNum = null;
 		
 	public static String sendMail(String email) {		
 		String recipient = email;

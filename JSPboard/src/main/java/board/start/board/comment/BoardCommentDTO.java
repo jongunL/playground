@@ -8,6 +8,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class BoardCommentDTO {
+	private boolean authorCk;
 	private String boardSeq;
 	private String boardTitleSeq;
 	private String boardAuthSeq;

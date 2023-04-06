@@ -216,18 +216,35 @@
 	}
 	.board_comment_container .comment_list .cmt.row {
 		display: flex;
+		flex-direction: column;
 	}
+	
 	.board_comment_container .comment_list .cmt.row {
 		border-bottom: 1px solid #ccc;
 	}
 	
 	.board_comment_container .comment_list .cmt.row.reply {
 		position: relative;
-		background-color: #eee;
+		border-top: 1px solid #ccc;
+		border-bottom: 1px solid #ccc;
 	}
 	
 	.board_comment_container .comment_list .cmt.row.reply .board_comment_area {
 		margin-left: 3rem;
+	}
+	
+	/* 답글쓰기폼 css */
+	.comment_view_data.reply {
+		padding-left: 3rem;
+		background-color: #eee;
+	}
+	
+	.comment_view_data.reply > .comment_submit_container {
+		display: none;
+	}
+	
+	.comment_view_data.reply > .comment_submit_container.show {
+		display: block;
 	}
 	
 	.board_comment_container .comment_list .cmt.row.reply .board_comment_area:before {
@@ -361,12 +378,15 @@
 	}
 	
 	/* 게시판 글 댓글 작성양식 */
-	.comment_submit_container {
-		padding: 0.75rem 1rem;
+	.comment_view_data {
 		background-color: #eee;		
 	}
 	
-	.board_view_comments > form > .comment_submit_container {
+	.comment_submit_container {
+		padding: 0.75rem 1rem;
+	}
+	
+	.board_view_comments > .comment_view_data > .comment_submit_container {
 		display: flex;
 		flex-direction: column;
 		border-top: 3px solid black;
@@ -611,7 +631,7 @@
 					<!-- 게시판 글 -->
 					<c:if test="${board ne null}">
 					<div class="board_view_container">
-						<form id="board_view_data" name="bvd">
+						<form class="board_view_data" name="bvd">
 							<input type="hidden" id="board_num" name= "board_num" value="${board.boardSeq}">
 							<input type="hidden" id="board_title_num" name= "board_title_num" value="${board.boardTitleSeq}">
 							<input type="hidden" id="board_author_num" name="board_author_num" value="${board.memberSeq}">
@@ -633,7 +653,11 @@
 									<div class="board_view_info">
 										<span>조회수 : ${board.boardViews}</span>
 										<span>추천수 : ${board.boardThumbsUp}</span>
-										<span><a href="#focus_c">댓글수 : ${board.boardCommentCount}</a></span>
+										<span>
+											<a href="#focus_c">
+												<span id="cmt_count">댓글수 : ${board.boardCommentCount}</span>
+											</a>
+										</span>
 									</div>
 								</div>
 							</div>
@@ -660,7 +684,9 @@
 								<div class="board_comment_sort">
 									<h4>
 										<span><i class="fa-regular fa-comment"></i></span>
-										<span>댓글(${board.boardCommentCount})</span>
+										<span>
+											<span id="cmt_section">댓글(${board.boardCommentCount})</span>
+										</span>
 									</h4>
 									<ul>
 										<li><a href="#">등록일순</a></li>
@@ -686,21 +712,21 @@
 								</div>
 							</div>
 							<!-- 게시판 댓글작성 -->
-							<form action="/board/comment/submit" method="POST">
+							<div class="comment_view_data">
 								<div class="comment_submit_container">
 									<div class="comment_input">
 										<div class="comment">
 											<textarea name="comment" placeholder="내용을 입력해주세요."></textarea>
 										</div>
 										<div class="comment_submit_btn">
-											<button type="button" data-board-num="${board.boardSeq}">등록</button>
+											<button type="button">등록</button>
 										</div>
 									</div>
 									<div class="comment_util_btns">
 										<button type="button">이모티콘</button>
 									</div>
 								</div>
-							</form>
+							</div>
 						</div>
 					</div>
 					</c:if>
@@ -940,7 +966,7 @@
 			}
 			
 			/** TODO 나중에 댓글에 이모티콘 입력기능 추가하기 */
-			$('.comment_util_btns').on('click', function() {
+			$('.comment_util_btns > button').on('click', function() {
 				alert('준비중인 기능입니다.');
 			});
 

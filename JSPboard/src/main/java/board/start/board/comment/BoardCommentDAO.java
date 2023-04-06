@@ -82,12 +82,12 @@ public class BoardCommentDAO {
 			String sql = "insert into board_comment(seq, board_seq, board_auth_seq, board_comment, comment_auth_seq) "
 					+ " values(board_comment_seq.nextval, "
 					+ " ?, "
-					+ " (select board_auth_seq from board_comment where board_seq = ? and rownum = 1), "
+					+ " ?, "
 					+ " ?, "
 					+ " ?)";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, boardCommentDTO.getBoardSeq());
-			pstmt.setString(2, boardCommentDTO.getBoardSeq());
+			pstmt.setString(2, boardCommentDTO.getBoardAuthSeq());
 			pstmt.setString(3, boardCommentDTO.getBoardComment());
 			pstmt.setString(4, boardCommentDTO.getMemberSeq());
 			if(pstmt.executeUpdate() > 0) {
@@ -144,6 +144,24 @@ public class BoardCommentDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return result;
+	}
+
+	public boolean deleteComment(BoardCommentDTO boardCommentDTO) {
+		boolean result = false;
+		
+		try {
+			String sql = "delete from board_comment where seq = ? "
+					+ "and comment_auth_seq = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, boardCommentDTO.getBoardCommentSeq());
+			pstmt.setString(2, boardCommentDTO.getMemberSeq());
+			if(pstmt.executeUpdate() > 0) result = true;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		return result;
 	}
 	
