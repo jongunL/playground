@@ -1,0 +1,119 @@
+@import '/asset/css/constants.css';
+/* header, footer */
+.root_container.dark header,
+.root_container.dark footer{
+	background-color: var(--bgcr-middle-dark);
+	color: var(--color-white);
+}
+.root_container.dark #header_logo > span {
+	color: var(--color-white)
+}
+
+.root_container.dark footer > nav > span > a {
+	color: var(--color-white);
+}
+.root_container.dark footer > nav > span:hover > a {
+	border-bottom: 1px solid var(--color-white);
+}
+.root_container.dark .navbar_toogleBtn {
+	color: var(--color-white);	
+}
+.root_container.dark #header_menu > li a {
+	color: var(--color-white);
+}
+.root_container.dark #header_menu > li:hover {
+	background-color: var(--color-white);	
+}
+.root_container.dark #header_menu > li:hover a {
+	color: var(--color-black);
+}
+.root_container.dark #header_menu > #header_alarm:hover a {
+	color: var(--color-white);
+}
+#header_menu #header_profile_img #menu_toggle_btn > i {
+	color: var(--color-black);	
+}
+
+
+/* util btn */
+.root_container.dark .mode_btn,
+.root_container.dark .move_btn {
+	background-color: var(--bgcr-light-dark);
+	box-shadow: none;
+	color: var(--color-white);
+}
+
+.mode_btn:hover > i,
+.root_container.dark .mode_btn > i {
+	color: var(--color-yellow);
+}
+
+.root_container.dark .mode_btn:hover,
+.root_container.dark .move_btn:hover {
+	background-color: var(--bgcr-vlight-dark);
+	color: var(--color-white);
+	box-shadow: 0 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.1);
+}
+
+.root_container.dark .mode_btn:hover > i {
+	color: var(--color-yellow);
+}
+
+/* article */
+.root_container.dark .content_wrapper {
+	background-color: var(--bgcr-middle-dark);
+}
+
+.root_container.dark .board_article {
+	background-color: var(--bgcr-deep-dark);
+	color: var(--color-white);
+}
+
+/* regist */
+.root_container.dark .join_content > h1 > a{
+	color: var(--color-white);
+}
+
+.root_container.dark .join_content .ps_box,
+.root_container.dark .join_content .ps_box input {
+	background-color: var(--bgcr-light-dark);
+	color: white;
+}
+.root_container.dark .join_content .ps_box input::placeholder {
+	color: white;
+}
+
+/* login */
+.root_container.dark .login_group,
+.root_container.dark .ps_box.option {
+	background-color: var(--bgcr-middle-dark);
+}
+
+.root_container.dark .ps_box.option > label,
+.root_container.dark .link_area > div > a {
+	color: var(--color-white);
+}
+
+.root_container.dark .login_group > h1 > a {
+	color: var(--color-white);
+}
+.root_container.dark .login_group #id,
+.root_container.dark .login_group #pwd {
+	background-color: var(--bgcr-light-dark);
+	color: var(--color-white);
+}
+.root_container.dark .login_group #id::placeholder,
+.root_container.dark .login_group #pwd::placeholder {
+	color: white;
+}
+
+@media screen and (max-width: 768px) { 
+	/*header*/
+	.root_container.dark #header_menu > #header_alarm:hover a {
+	color: var(--color-black);
+	}
+	#header_menu > #header_alarm:hover {
+		background-color: var(--bgcr-white);
+		border-radius: 4px;
+	}
+}

@@ -1,0 +1,104 @@
+@import '/asset/css/constants.css';
+
+.board_list {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+}
+
+.board_list > .board.row {
+	display: flex;
+	border-bottom: 1px solid black;
+}
+.board_list > .board.row:last-child {
+	border: none;
+}
+
+.board_list > .board.row > .board.column {
+	box-sizing: border-box;
+	min-height: 400px;
+	min-width: 50%;
+	max-width: 50%;
+	padding: 15px;
+}
+
+.board_list > .board.row > .board.column:first-child {
+	border-right: 1px solid black;
+}
+
+.board.column > h1 {
+	margin: 0 0 20px;
+}
+.board.column > h1 > a {
+	display: flex;
+	justify-content: space-between;
+}
+.board.column > h1 > a > i {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.board.column > h1 > a > span {
+	padding-bottom: 5px;
+	border-bottom: 2px solid black;
+}
+
+.contents_list > .content {
+	padding: 2px 0;
+}
+
+.contents_list > .content > a {
+	display: block;
+}
+
+.contents_list > .content > a:hover .box.text {
+	text-decoration: underline;
+}
+
+.contents_list > .content.empty {
+	display: inline-block;
+	margin: auto;
+}
+
+.contents_list > .content.empty > a > span {
+	display: block;
+}
+
+.box.line {
+	display: flex;
+	justify-content: space-between;
+}
+
+.box.text,
+.box.info,
+.box.info > .time {
+	display: block;
+}
+
+.box.info {
+	white-space: nowrap;
+}
+
+.box.info > .time {
+	font-size: 0.7rem;
+	padding: 3px;
+	color: white;
+	background-color: black;
+	border-radius: 3px;
+}
+
+@media screen and (max-width: 768px) { 
+	.board_list > .board.row {
+		flex-wrap: wrap;
+	}
+	
+	.board_list > .board.row > .board.column {
+		max-width: 100%;
+	}
+	.board_list > .board.row > .board.column:first-child {
+		border-bottom: 1px solid black;
+		border-right: none;
+	}
+}

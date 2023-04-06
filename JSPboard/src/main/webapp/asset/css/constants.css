@@ -1,0 +1,22 @@
+/* variable */
+:root { 
+	--body-hd-vh: 8vh; 
+	--body-ft-vh: 8vh;
+	--header-logo-size: 4.5rem;
+	
+	--font-size-big: 24px;
+	--font-size-middle: 18px;
+	--font-size-small: 12px;
+	
+	--bgcr-white: white;
+	--bgcr-semi-white: #eeeeee;
+	--bgcr-deep-dark: #1e1f21;
+	--bgcr-middle-dark: #292a2d;
+	--bgcr-light-dark: #55585f;
+	--bgcr-vlight-dark: #66696f;
+	--color-black: black;
+	--color-white: white;
+	--color-yellow: yellow;
+	--color-hr-dark: #3d414d;
+	--color-a-blue: #0000ee;
+}
