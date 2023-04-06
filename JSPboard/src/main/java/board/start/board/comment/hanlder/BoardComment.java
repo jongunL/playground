@@ -27,21 +27,12 @@ public class BoardComment extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		HashMap<String, String> auth = (HashMap<String, String>)Auth.getAuth(req);
 		String boardTitleSeq = req.getParameter("boardTitleSeq");
 		String boardSeq = req.getParameter("boardSeq");
-		String memberSeq = null;
 		ArrayList<BoardCommentDTO> comment = null;
-		
-		//comment 댓글 가공을 위해 로그인 여부확인
-		if(auth != null) {
-			String active = auth.get("active");
-			if(auth.get("auth") != null && (active != null && active.equals("y"))) {
-				memberSeq = auth.get("seq");
-			}
-		}
+
 		//가져온 데이터가 있다면 댓글을 가져온다.
-		if(boardTitleSeq != null && boardSeq != null && memberSeq != null) {
+		if(boardTitleSeq != null && boardSeq != null) {
 			BoardCommentDAO boardCommentDAO = new BoardCommentDAO();
 			BoardCommentDTO boardCommentDTO = new BoardCommentDTO();
 			boardCommentDTO.setBoardSeq(boardSeq);
@@ -53,8 +44,6 @@ public class BoardComment extends HttpServlet {
 		if(comment != null) {
 			for(BoardCommentDTO dto : comment) {
 				dto.setBoardComment(dto.getBoardComment().replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
-				if(memberSeq != null && dto.getMemberSeq().equals(memberSeq)) dto.setAuthorCk(true);
-				else dto.setAuthorCk(false);
 			}
 		}
 		

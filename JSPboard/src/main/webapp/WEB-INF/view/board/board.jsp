@@ -614,7 +614,7 @@
 						<form id="board_view_data" name="bvd">
 							<input type="hidden" id="board_num" name= "board_num" value="${board.boardSeq}">
 							<input type="hidden" id="board_title_num" name= "board_title_num" value="${board.boardTitleSeq}">
-							<input type="hidden" id="board_author_seq" name="board_author_num" value="${board.memberSeq}">
+							<input type="hidden" id="board_author_num" name="board_author_num" value="${board.memberSeq}">
 						</form>
 						<div class="board_view_header">
 							<div class="board_author_profile">
@@ -934,7 +934,6 @@
 			//로그인되지 않은 상태라면, 댓글입력 및 전송 막기
 			let loginCk = ${((empty cookie.auth.value) or (cookie.auto.value ne 'true')) and (empty sessionScope.auth)};
 			if(loginCk) {
-				console.log('실행됨');
 				$('.comment textarea').attr('placeholder', '댓글은 로그인후 작성이 가능합니다.').css('cursor', 'not-allowed').prop('disabled', true).css('background-color', 'white');
 				$('.comment_submit_btn > button').css('cursor', 'not-allowed').prop('disabled', true);
 				$('.comment_util_btns > button').css('cursor', 'not-allowed').prop('disabled', true);

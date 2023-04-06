@@ -9,15 +9,20 @@ function get_comment(board_num, board_title_num) {
 		},
 		dataType: 'json',
 		success: function(result) {
-			result.forEach(function(value) {
-				put_comment_html(value);
-			});
+			if(result != null) {
+				result.forEach(function(value) {
+					put_comment_html(value);
+				});
+			} else {
+				alert('댓글 목록을 가져오는데 실패했습니다.');
+			}
 		},
 		error: function(a, b, c) {
 			console.log(a, b, c);
 		}
 	});
 }
+
 
 /** 등록 버튼 클릭시 데이터를 추가 */
 $('.comment_submit_btn > button').on('click', function() {

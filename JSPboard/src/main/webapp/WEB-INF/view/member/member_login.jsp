@@ -91,7 +91,6 @@
 				return;
 			//모두 입력되어 있는 경우
 			} else {
-				console.log('실행됨');
 				//DB에서 id, pwd 체크
 				login_ck();
 			}

@@ -1,22 +1,16 @@
 package board.start.board.comment.hanlder;
 
-import java.io.IOException;
 import java.util.Map;
-
+import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.google.gson.Gson;
-
-import board.start.board.BoardDAO;
+import board.start.board.comment.BoardCommentDAO;
 import board.start.board.comment.BoardCommentDTO;
 import board.start.util.Auth;
 
@@ -29,7 +23,7 @@ public class BoardCommentAdd extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		req.setCharacterEncoding("UTF-8");
-		BoardDAO boardDAO = new BoardDAO();
+		BoardCommentDAO boardCommentDAO = new BoardCommentDAO();
 		//데이터를 가져오고
 		String comment = req.getParameter("comment");
 		String boardFormData = req.getParameter("boardFormData");
@@ -54,7 +48,7 @@ public class BoardCommentAdd extends HttpServlet {
 			boardCommentDTO.setBoardSeq(boardSeq);
 			boardCommentDTO.setMemberSeq(memberSeq);
 			boardCommentDTO.setBoardComment(comment);
-			commentSeq = boardDAO.saveBoardComment(boardCommentDTO);
+			commentSeq = boardCommentDAO.saveBoardComment(boardCommentDTO);
 		}
 		
 		//댓글 등록에 성공한 경우, 동적 태그 추가를 위한 쿼리실행
@@ -62,7 +56,7 @@ public class BoardCommentAdd extends HttpServlet {
 		if(commentSeq != null && boardTitleSeq != null) {
 			boardCommentDTO.setBoardCommentSeq(commentSeq);
 			boardCommentDTO.setBoardTitleSeq(boardTitleSeq);
-			commentResult = boardDAO.getComment(boardCommentDTO);
+			commentResult = boardCommentDAO.getComment(boardCommentDTO);
 		}
 		
 		resp.setCharacterEncoding("UTF-8");
