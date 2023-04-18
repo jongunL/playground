@@ -12,6 +12,9 @@ import org.json.simple.JSONValue;
 import com.google.gson.Gson;
 import board.start.board.comment.BoardCommentDAO;
 import board.start.board.comment.BoardCommentDTO;
+import board.start.member.MemberAlarmDTO;
+import board.start.member.MemberAlramDAO;
+import board.start.member.MemberDAO;
 import board.start.util.Auth;
 
 @WebServlet("/board/comment/add")
@@ -29,11 +32,12 @@ public class BoardCommentAdd extends HttpServlet {
 		String commentGroupSeq = req.getParameter("rootNo");
 		String commentGroupOrderSeq = req.getParameter("orderNo");
 		String boardFormData = req.getParameter("boardFormData");
+		String nickname = req.getParameter("nickname");
 		JSONObject jsonObject = (JSONObject)JSONValue.parse(boardFormData);
 		String boardSeq = (String)jsonObject.get("board_num");
 		String boardTitleSeq = (String)jsonObject.get("board_title_num");
 		String boardAuthorSeq = (String)jsonObject.get("board_author_num");
-
+		
 		//로그인된 사용자인지 확인한다.
 		String memberSeq = null;
 		Map<String, String> auth = Auth.getAuth(req);
@@ -43,23 +47,18 @@ public class BoardCommentAdd extends HttpServlet {
 				memberSeq = auth.get("seq");				
 			}
 		}
-		
-		System.out.println(comment);
-		System.out.println(boardSeq);
-		System.out.println(boardTitleSeq);
-		System.out.println(boardAuthorSeq);
-		System.out.println(memberSeq);
-		System.out.println(commentGroupSeq);
-		System.out.println(commentGroupOrderSeq);
-		/*
+
 		//업로드 정보와, 로그인된 사용자이며, 글작성이 가능하다면 댓글을 등록한다.
 		String commentSeq = null;
 		BoardCommentDTO boardCommentDTO = new BoardCommentDTO();
 		if(boardSeq != null && memberSeq != null && boardAuthorSeq != null && commentLengthCk(comment)) {
-			boardCommentDTO.setBoardSeq(boardSeq);
-			boardCommentDTO.setMemberSeq(memberSeq);
 			boardCommentDTO.setBoardComment(comment);
+			boardCommentDTO.setBoardSeq(boardSeq);
+			boardCommentDTO.setBoardTitleSeq(boardTitleSeq);
 			boardCommentDTO.setBoardAuthSeq(boardAuthorSeq);
+			boardCommentDTO.setMemberSeq(memberSeq);
+			boardCommentDTO.setBoardCommentGroupSeq(commentGroupSeq);
+			boardCommentDTO.setBoardCommentGroupOrderSeq(commentGroupOrderSeq);
 			commentSeq = boardCommentDAO.saveBoardComment(boardCommentDTO);
 		}
 		
@@ -71,15 +70,37 @@ public class BoardCommentAdd extends HttpServlet {
 			commentResult = boardCommentDAO.getComment(boardCommentDTO);
 		}
 		
+		//동적 태그 생성에 필요한 데이터 가공
 		if(commentResult != null) {
-			if(memberSeq != null && commentResult.getMemberSeq().equals(memberSeq)) commentResult.setAuthorCk(true);
+			if(memberSeq != null && memberSeq.equals(commentResult.getMemberSeq())) commentResult.setAuthorCk(true);
 			else commentResult.setAuthorCk(false);
+			commentResult.setBoardComment(commentResult.getBoardComment().replaceAll("<", "&lt").replaceAll(">", "&gt"));
 		}
 		
+		//알람 전송하기
+		if(commentResult != null) {
+			String memberReceiverSeq = null;
+			if(commentGroupSeq != null && commentGroupOrderSeq != null && nickname != "") {
+				MemberDAO memberDAO = new MemberDAO();
+				memberReceiverSeq = memberDAO.getMemberSeqByNickname(nickname);
+			} else {
+				memberReceiverSeq = boardAuthorSeq;
+			}
+			
+			MemberAlramDAO memberAlramDAO = new MemberAlramDAO();
+			MemberAlarmDTO memberAlarmDTO = new MemberAlarmDTO();
+			memberAlarmDTO.setBoardSeq(boardSeq);
+			memberAlarmDTO.setMemberReceiverSeq(memberReceiverSeq);
+			memberAlarmDTO.setMemberSenderSeq(memberSeq);
+			memberAlarmDTO.setCommentSeq(commentSeq);
+			memberAlarmDTO.setMessage(commentAlarmLengthCk(commentResult.getBoardComment()));
+			memberAlramDAO.sendMemberAlarm(memberAlarmDTO);
+		}
+		
+		//코멘트 전송
 		resp.setCharacterEncoding("UTF-8");
 		resp.setContentType("application/json");
 		resp.getWriter().write(new Gson().toJson(commentResult));
-		*/
 	}
 	
 	//1~300 글자 사이라면 등록 가능
@@ -89,5 +110,10 @@ public class BoardCommentAdd extends HttpServlet {
 		return result;
 	}
 	
+	//알람은 최대 88글자
+	private String commentAlarmLengthCk(String comment) {
+		if(comment.length() > 88) return comment.substring(0, 87);
+		else return comment;
+	}
 }
 

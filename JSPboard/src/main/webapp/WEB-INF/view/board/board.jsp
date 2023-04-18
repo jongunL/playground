@@ -112,8 +112,34 @@
 		border-bottom: 1px solid #ccc;
 	}
 	.board_view_container .board_view_header .board_view_title {
+		display: flex;
+		justify-content:space-between; 
+	}
+	
+	.board_view_container .board_view_header .board_view_title h1 {
 		font-size: 1rem;
 	}
+	
+	.board_view_container .board_view_header .board_view_title div {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		border-collapse: collapse;
+		width: 6rem;
+		font-size: 0.9rem;
+	}
+	.board_view_header .board_view_title div span:after {
+		content: "|";
+	}
+	
+	.board_view_header .board_view_title div span:last-child:after {
+		content: "";
+	}
+	
+	.board_view_title > div > span > a {
+		padding: 0.25rem 0.5rem;
+	}
+	
 	.board_view_container .board_view_header .board_view_status {
 		display: flex;
 		justify-content: space-between;
@@ -149,6 +175,7 @@
 	.board_view_status > div > span:last-child:after {
 		content: none;
 	}
+	
 	.board_view_info > span > a {
 		background-color: #ddd;
 		border-radius: 15px;
@@ -219,16 +246,24 @@
 		flex-direction: column;
 	}
 	
+	.deleted {
+		padding: 1.5rem 1.5rem;
+	}
+	
+	.deleted,
 	.board_comment_container .comment_list .cmt.row {
 		border-bottom: 1px solid #ccc;
 	}
 	
+	.deleted.reply,
 	.board_comment_container .comment_list .cmt.row.reply {
 		position: relative;
 		border-top: 1px solid #ccc;
 		border-bottom: 1px solid #ccc;
+		background-color: #eee;
 	}
 	
+	.deleted.reply .deleted_area,
 	.board_comment_container .comment_list .cmt.row.reply .board_comment_area {
 		margin-left: 3rem;
 	}
@@ -247,6 +282,7 @@
 		display: block;
 	}
 	
+	.deleted.reply:before,
 	.board_comment_container .comment_list .cmt.row.reply .board_comment_area:before {
 		content: "\f3e5";
 		font-family: "Font Awesome 6 Free";
@@ -256,6 +292,12 @@
 		transform: rotate(180deg);
 		top: 1rem;
 		left: 1rem;
+	}
+	
+	.deleted.reply:before {
+		top: 50%;
+		left: 1rem;
+		transform: rotate(180deg) translateY(50%);
 	}
 		
 	.board_comment_container > .comment_list > .cmt.row > .board_comment_area {
@@ -386,14 +428,23 @@
 		padding: 0.75rem 1rem;
 	}
 	
+	.comment_submit_container.update {
+		padding: 0;
+	}
+	
 	.board_view_comments > .comment_view_data > .comment_submit_container {
 		display: flex;
 		flex-direction: column;
 		border-top: 3px solid black;
 		border-bottom: 3px solid black;
 	}
+	.comment_submit_container > .comment_util_btns {
+		display: flex;
+		justify-content: space-between;
+	}
+	
 	.comment_submit_container > .comment_util_btns > button {
-		margin-top: 1rem;
+		margin-top: 0.5rem;
 		width: 5rem;
 		height: 2.5rem;
 		padding: 0.25rem 0.75rem;
@@ -462,12 +513,22 @@
 		padding: 3px 0;
 	}
 	
+	.board_root_container > .board_list > tbody > .search_board.active {
+		background-color: #f4f6ff;
+	}
+	
 	.board_root_container > .board_list > tbody > .search_board:hover {
 		background-color: #eeeeee;
 	}
 	
 	.board_root_container > .board_list > tbody > .no_search_board:hover {
 		background-color: transparent;
+	}
+	
+	.search_board > .board_num > i {
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 	
 	.board_root_container > .board_list > tbody > tr > .board_subject > a,
@@ -641,10 +702,18 @@
 								<img src="/asset/images/profile/${board.memberProfile}">
 							</div>
 							<div class="board_view_body">
-								<h1 class="board_view_title">
-									<span>[${board.boardSubTitle}]</span>
-									<span>${board.boardSubject}</span>
-								</h1>
+								<div class="board_view_title">
+									<h1>
+										<span>[${board.boardSubTitle}]</span>
+										<span>${board.boardSubject}</span>
+									</h1>
+									<c:if test="${board.boardAuthor eq true}">
+									<div>
+										<span><a href="/board/write?num=${board.boardTitleSeq}&board=${board.boardSeq}">수정</a></span>
+										<span><a href="/board/delete?board=${board.boardSeq}">삭제</a></span>
+									</div>
+									</c:if>
+								</div>
 								<div class="board_view_status">
 									<div class="board_view_author">
 										<span>${board.memberNickname}</span>
@@ -688,28 +757,36 @@
 											<span id="cmt_section">댓글(${board.boardCommentCount})</span>
 										</span>
 									</h4>
-									<ul>
-										<li><a href="#">등록일순</a></li>
-										<li><a href="#">최신순</a></li>
+									<ul class="board_comment_sort_btn">
+										<li><a href="javascript:;" data-cmt-sort="registrationDate">등록일순</a></li>
+										<li><a href="javascript:;" data-cmt-sort="newest">최신순</a></li>
 									</ul>
 								</div>
 							</div>
 							<!-- 댓글 -->
 							<div class="board_comment_container">
+								<form class="board_comment_data" name="bcd">
+									<input type="hidden" class="comment_total_page" name="total_page">
+									<input type="hidden" class="comment_page" name="page">
+									<input type="hidden" class="comment_sort" name="sort">
+								</form>
 								<div class="comment_list">
 									<!-- ajax - 동적태그생성 -->
 								</div>
+								<!-- 댓글 페이징 -->
+								<c:if test="${board.boardCommentCount > 0}">
 								<div class="comment_paging_box">
 									<div class="comment_pageing">
-										<button><i class="fa-solid fa-angle-left"></i></button>
+										<button class="move_prev_comment_page"><i class="fa-solid fa-angle-left"></i></button>
 										<span>
 											<span id="comment_page">1</span>
 											<span>/</span>
 											<span id="comment_total_page">2</span>
 										</span>
-										<button><i class="fa-solid fa-chevron-right"></i></button>
+										<button class="move_next_comment_page"><i class="fa-solid fa-chevron-right"></i></button>
 									</div>
 								</div>
+								</c:if>
 							</div>
 							<!-- 게시판 댓글작성 -->
 							<div class="comment_view_data">
@@ -1166,9 +1243,7 @@
 					board_seq: board_seq
 				},
 				dataType: 'json',
-				success: function(data) {
-					console.log(data.result);
-					
+				success: function(data) {					
 					if(data.result.already == true) {
 						alert('이미 해당 게시글에 추천 또는 비추천을 하셨습니다.');
 					} else if(data.result.success == true) {

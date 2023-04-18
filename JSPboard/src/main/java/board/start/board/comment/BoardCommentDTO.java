@@ -19,6 +19,7 @@ public class BoardCommentDTO {
 	private String memberManager;
 	private String boardCommentSeq;
 	private String boardComment;
+	private String boardCommentActive;
 	private String boardCommentGroupSeq;
 	private String boardCommentGroupOrderSeq;
 	private String boardCommentRegdate;

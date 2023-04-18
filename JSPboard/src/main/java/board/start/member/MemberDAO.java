@@ -79,6 +79,25 @@ public class MemberDAO {
 		return result;
 	}//signIn
 	
+	public String getMemberSeqByNickname(String nickname) {
+		String result = null;
+		
+		try {
+			String sql = "select seq from member where nickname = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, nickname);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getString("seq");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
 	public MemberDTO getIdByEmail(String auth) {
 		MemberDTO result = null;
 		

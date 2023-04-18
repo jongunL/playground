@@ -48,7 +48,21 @@ public class BoardDAO {
 					+ "		    bst.sub_title as board_sub_title,m.nickname as member_nickname, bm.seq as member_manager, "
 					+ "		    b.subject as board_subject, b.contents as board_contents, b.regdate as board_regdate, "
 					+ "		    b.thumbs_up as board_thumbs_up, b.thumbs_down as board_thumbs_down, b.views as board_views, "
-					+ "		    (select count(*) from board_comment where board_seq = ?) as board_comment_count, "
+					+ "		    ("
+					+ "				select count(*) "
+					+ "				from board_comment "
+					+ "				where board_seq = ?"
+					+ "				and ("
+					+ "            	   board_comment.active = 'y' "
+					+ "            	   or board_comment.seq = board_comment.comment_group_seq "
+					+ "				   and board_comment.seq in ( "
+					+ "                select comment_group_seq "
+					+ "                from board_comment "
+					+ "                where active = 'y' "
+					+ "                group by comment_group_seq having count(comment_group_seq) > 0 "
+					+ "             	) "
+					+ "				)"	
+					+ "			) as board_comment_count, "
 					+ "			m.profile as member_profile, b.seq as board_seq, m.seq as member_seq,"
 					+ "			b.board_title_seq as board_title_seq "
 					+ "		from board b "
@@ -56,6 +70,7 @@ public class BoardDAO {
 					+ "		inner join board_sub_title bst on b.board_sub_title_seq = bst.seq "
 					+ "		left join board_manager bm on (b.member_seq = bm.member_seq and bm.board_title_seq = ?) "
 					+ "		where b.seq = ?";
+
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, boardSeq);
 			pstmt.setString(2, boardTitleSeq);
@@ -102,7 +117,15 @@ public class BoardDAO {
 					+ "        from board b "
 					+ "        inner join member m on b.member_seq = m.seq "
 					+ "        inner join board_sub_title bst on b.board_sub_title_seq = bst.seq "
-					+ "		   left join board_comment bc on b.seq = bc.board_seq "	
+					+ "		   left join board_comment bc on b.seq = bc.board_seq and ( "
+					+ "			   bc.active = 'y' or bc.seq = bc.comment_group_seq and bc.seq in ( "
+					+ "   		   select comment_group_seq "
+					+ "    		   from board_comment "
+					+ "    		   where active = 'y' "
+					+ "    		   group by comment_group_seq "
+					+ "    		   having count(comment_group_seq) > 0 "
+					+ "  	   ) "
+					+ ")"
 					+ "		   left join board_manager bm on (m.seq = bm.member_seq and bm.board_title_seq = ? and bm.active = 'y') "
 					+ "	   where 1 = 1"
 					+ "			 and b.board_title_seq = ? ";
@@ -391,7 +414,16 @@ public class BoardDAO {
 				    + "        FROM board "
 				    + "        WHERE thumbs_up >= ? "
 				    + "        ) best "
-				    + "    LEFT JOIN board_comment bc ON best.seq = bc.board_seq "
+				    + "    LEFT JOIN board_comment bc ON best.seq = bc.board_seq and ("
+				    + "			    bc.active = 'y' "
+				    + "             or bc.seq = bc.comment_group_seq "
+				    + "             and bc.seq in ( "
+				    + "                select comment_group_seq "
+				    + "                from board_comment "
+				    + "                where active = 'y' "
+				    + "                group by comment_group_seq having count(comment_group_seq) > 0 "
+				    + "              )"
+				    + "	   ) "
 				    + "    GROUP BY 1, best.seq, best.subject, best.regdate "
 				    + ") "
 				    + "SELECT title_seq, title, board_seq, subject, regdate, board_comment_num "
@@ -405,14 +437,23 @@ public class BoardDAO {
 				    + "            SELECT bt.seq AS seq, bt.board_title AS board_title, COUNT(b.seq) AS board_count "
 				    + "            FROM board_title bt "
 				    + "            LEFT JOIN board b ON bt.seq = b.board_title_seq "
-				    + "            WHERE bt.seq != 1 AND active = 'y' "
+				    + "            WHERE bt.seq != 1 AND bt.active = 'y' "
 				    + "            GROUP BY bt.seq, bt.board_title "
 				    + "            ORDER BY COUNT(b.seq) DESC "
 				    + "        ) rs "
 				    + "        WHERE ROWNUM < ? "
 				    + "    ) tlist "
 				    + "    LEFT JOIN board b ON tlist.seq = b.board_title_seq "
-				    + "    LEFT JOIN board_comment bc ON b.seq = bc.board_seq "
+				    + "    LEFT JOIN board_comment bc ON b.seq = bc.board_seq and ("
+				    + "			    bc.active = 'y' "
+				    + "             or bc.seq = bc.comment_group_seq "
+				    + "             and bc.seq in ( "
+				    + "                select comment_group_seq "
+				    + "                from board_comment "
+				    + "                where active = 'y' "
+				    + "                group by comment_group_seq having count(comment_group_seq) > 0 "
+				    + "              )"
+				    + "	   )"
 				    + "    GROUP BY tlist.seq, tlist.board_title, b.seq, b.subject, b.regdate "
 				    + "    UNION ALL "
 				    + "    SELECT bt.seq as title_seq, bt.board_title as title, bbl.board_seq as board_seq, bbl.subject as subject, bbl.regdate as regdate, bbl.board_comment_num as board_comment_num, "
@@ -474,7 +515,7 @@ public class BoardDAO {
 				pstmt = conn.prepareStatement(insertRecommend);
 				pstmt.setString(1, memberSeq);
 				pstmt.setString(2, boardSeq);
-				pstmt.setInt(3, recommend);
+				pstmt.setLong(3, recommend);
 				int insertResult = pstmt.executeUpdate();
 				
 				if(insertResult > 0) {

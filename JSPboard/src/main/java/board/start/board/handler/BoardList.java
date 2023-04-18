@@ -47,10 +47,12 @@ public class BoardList extends HttpServlet {
 		}
 		
 		//구독유무 확인하기
+		String memberSeq = null;
 		HashMap<String, String> auth = (HashMap<String, String>)Auth.getAuth(req);
 		if(auth != null) {
 			String active = auth.get("active");
 			if(auth.get("auth") != null && (active != null && active.equals("y"))) {
+				memberSeq = auth.get("seq");
 				int result = boardDAO.checkSubScribe(category, auth.get("seq"));
 				//구독 여부 추가하기
 				if(result > 0) req.setAttribute("subscribe", true);
@@ -69,6 +71,12 @@ public class BoardList extends HttpServlet {
 				board.setBoardTitleSeq(category);
 				board.setBoardSeq(boardSeq);
 				board = boardDAO.getBoard(board);
+				//로그인 사용자와, board 작성자 일치여부 확인하기
+				if(board.getMemberSeq() != null && memberSeq != null) {
+					board.setBoardAuthor(board.getMemberSeq().equals(memberSeq));
+				} else {
+					board.setBoardAuthor(false);
+				}
 			}
 			System.out.println(board.toString());
 		}

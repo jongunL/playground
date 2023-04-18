@@ -8,6 +8,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class BoardDTO {
+	private boolean boardAuthor;
 	private String boardSeq;
 	private String boardTitleSeq;
 	private String boardTitle;

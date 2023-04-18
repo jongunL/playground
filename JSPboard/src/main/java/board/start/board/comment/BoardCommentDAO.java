@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import board.start.util.DBUtil;
 
@@ -19,34 +21,69 @@ public class BoardCommentDAO {
 		conn = DBUtil.open();
 	}
 	
-	public ArrayList<BoardCommentDTO> getCommentListByboardSeq(BoardCommentDTO boardCommentDTO) {
+	public ArrayList<BoardCommentDTO> getCommentList(Map<String, String> commentOption) {
 		ArrayList<BoardCommentDTO> result = null;
 		try {
-			String boardTitleSeq = boardCommentDTO.getBoardTitleSeq();
-			String boardSeq = boardCommentDTO.getBoardSeq();
+			String boardTitleSeq = commentOption.get("category");
+			String boardSeq = commentOption.get("boardSeq");
+			String begin = commentOption.get("begin");
+			String end = commentOption.get("end");
+			String sort = commentOption.get("sort");
+			String sortOption = null;
 			
-			String sql = "select "
-					+ "    m.seq as member_seq, m.nickname as member_nickname, m.profile as member_profile, "
-					+ "    m.grade as member_grade, bc.board_auth_seq as board_auth_seq, "
-					+ "    (select seq from board_manager where member_seq = m.seq and board_title_seq = ?) as member_manager, "
-					+ "    bc.seq as board_comment_seq, bc.comment_group_seq as board_comment_group_seq, "
-					+ "    bc.group_order_seq as board_comment_group_order_seq, bc.board_comment as board_comment, "
-					+ "    bc.regdate as board_comment_regdate, bc.last_modified as board_comment_last_modified, "
-					+ "    bc.thumbs_up as board_comment_thumbs_up, bc.thumbs_down as board_comment_thumbs_down "
-					+ "from "
-					+ "    ( "
-					+ "        select * "
-					+ "        from board_comment "
-					+ "        where board_seq = ? "
-					+ "    ) bc "
-					+ "inner join member m on bc.comment_auth_seq = m.seq "
-					+ "order by board_comment_group_seq, board_comment_group_order_seq, board_comment_regdate ";
+			if(sort.equals("registrationDate")) {
+				sortOption = "asc";
+			} else if(sort.equals("newest")) {
+				sortOption = "desc";
+			} else {
+				sortOption = "asc";
+			}
+
+			String sql = "select * "
+					+ "from( "
+					+ "    select rownum as rn, rs.* "
+					+ "    from( "
+					+ "        select "
+					+ "            m.seq as member_seq, m.nickname as member_nickname, m.profile as member_profile, "
+					+ "            m.grade as member_grade, bc.board_auth_seq as board_auth_seq, \r\n"
+					+ "            ( "
+					+ "                select seq "
+					+ "                from board_manager "
+					+ "                where member_seq = m.seq and board_title_seq = ?"
+					+ "            ) as member_manager, "
+					+ "            bc.seq as board_comment_seq, bc.comment_group_seq as board_comment_group_seq, "
+					+ "            bc.group_order_seq as board_comment_group_order_seq, bc.board_comment as board_comment, "
+					+ "            bc.regdate as board_comment_regdate, bc.last_modified as board_comment_last_modified, "
+					+ "            bc.thumbs_up as board_comment_thumbs_up, bc.thumbs_down as board_comment_thumbs_down, "
+					+ "            bc.active as board_comment_active "
+					+ "        from ( "
+					+ "            select * "
+					+ "            from board_comment "
+					+ "            where board_seq = ? "
+					+ "            and ( "
+					+ "                     board_comment.active = 'y' "
+					+ "                     or board_comment.seq = board_comment.comment_group_seq "
+					+ "                     and board_comment.seq in ( "
+					+ "                        select comment_group_seq "
+					+ "                        from board_comment "
+					+ "                        where active = 'y' "
+					+ "                        group by comment_group_seq having count(comment_group_seq) > 0 "
+					+ "                      ) "
+					+ "                  ) "
+					+ "        ) bc "
+					+ "        inner join member m on bc.comment_auth_seq = m.seq "
+					+ "        order by board_comment_group_seq "+sortOption+", board_comment_group_order_seq "
+					+ "    ) rs "
+					+ ")"
+					+ "where rn between ? and ?";
 			
 			if(boardTitleSeq != null && boardSeq != null) {
 				result = new ArrayList<>();
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, boardTitleSeq);
 				pstmt.setString(2, boardSeq);
+				pstmt.setString(3, begin);
+				pstmt.setString(4, end);
 				rs = pstmt.executeQuery();
 				
 				while(rs.next()) {
@@ -67,6 +104,7 @@ public class BoardCommentDAO {
 					comment.setBoardCommentLastModified(rs.getString("board_comment_last_modified"));
 					comment.setBoardCommentThumbsUp(rs.getString("board_comment_thumbs_up"));
 					comment.setBoardCommentThumbsDown(rs.getString("board_comment_thumbs_down"));
+					comment.setBoardCommentActive(rs.getString("board_comment_active"));
 					result.add(comment);
 				}
 			}
@@ -79,17 +117,30 @@ public class BoardCommentDAO {
 	public String saveBoardComment(BoardCommentDTO boardCommentDTO) {
 		String result = null;
 		try {
-			String sql = "insert into board_comment(seq, board_seq, board_auth_seq, board_comment, comment_auth_seq) "
-					+ " values(board_comment_seq.nextval, "
-					+ " ?, "
-					+ " ?, "
-					+ " ?, "
-					+ " ?)";
+			String sql = "insert into board_comment(seq, board_seq, board_auth_seq, board_comment, comment_auth_seq";
+			if(boardCommentDTO.getBoardCommentGroupSeq() != null && boardCommentDTO.getBoardCommentGroupOrderSeq() != null) {
+				sql += ", comment_group_seq, group_order_seq";
+			}
+			sql +=  ") values(board_comment_seq.nextval, ?, ?, ?, ?";
+			if(boardCommentDTO.getBoardCommentGroupSeq() != null && boardCommentDTO.getBoardCommentGroupOrderSeq() != null) {
+				sql += ", ?, (select sum(max(group_order_seq) + 1) "
+						+ "from board_comment "
+						+ "where comment_group_seq = ? "
+						+ "group by comment_group_seq)";
+			}
+			sql += ")";
+			
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, boardCommentDTO.getBoardSeq());
 			pstmt.setString(2, boardCommentDTO.getBoardAuthSeq());
 			pstmt.setString(3, boardCommentDTO.getBoardComment());
 			pstmt.setString(4, boardCommentDTO.getMemberSeq());
+			
+			if(boardCommentDTO.getBoardCommentGroupSeq() != null && boardCommentDTO.getBoardCommentGroupOrderSeq() != null) {				
+				pstmt.setString(5, boardCommentDTO.getBoardCommentGroupSeq());
+				pstmt.setString(6, boardCommentDTO.getBoardCommentGroupSeq());
+			}
+			
 			if(pstmt.executeUpdate() > 0) {
 				String getCommentSeq = "select board_comment_seq.currval from dual";
 				stmt = conn.createStatement();
@@ -110,12 +161,13 @@ public class BoardCommentDAO {
 		BoardCommentDTO result = null;
 		try {
 			String sql = "select "
-					+ "    m.seq as member_seq, m.nickname as member_nickname, "
-					+ "    m.grade as member_grade, m.profile as member_profile, "
+					+ "    m.seq as member_seq, m.nickname as member_nickname, bc.seq as board_comment_seq, "
+					+ "    m.grade as member_grade, m.profile as member_profile, bc.active as board_comment_active, "
 					+ "    (select seq from board_manager where member_seq = m.seq and board_title_seq = ?) as member_manager, "
 					+ "    bc.board_comment as board_comment, bc.comment_group_seq as comment_group_seq, "
 					+ "    bc.group_order_seq as group_order_seq, bc.regdate as board_comment_regdate, "
-					+ "    bc.thumbs_up as board_comment_thumbs_up, bc.thumbs_down as board_comment_thumbs_down "
+					+ "    bc.thumbs_up as board_comment_thumbs_up, bc.thumbs_down as board_comment_thumbs_down,"
+					+ "	   bc.board_auth_seq as board_auth_seq "
 					+ "from "
 					+ "    ( "
 					+ "        select * "
@@ -129,6 +181,7 @@ public class BoardCommentDAO {
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				result = new BoardCommentDTO();
+				result.setBoardCommentSeq(rs.getString("board_comment_seq"));
 				result.setMemberSeq(rs.getString("member_seq"));
 				result.setMemberNickname(rs.getString("member_nickname"));
 				result.setMemberGrade(rs.getString("member_grade"));
@@ -140,6 +193,8 @@ public class BoardCommentDAO {
 				result.setBoardCommentRegdate(rs.getString("board_comment_regdate"));
 				result.setBoardCommentThumbsUp(rs.getString("board_comment_thumbs_up"));
 				result.setBoardCommentThumbsDown(rs.getString("board_comment_thumbs_down"));
+				result.setBoardCommentActive(rs.getString("board_comment_active"));
+				result.setBoardAuthSeq(rs.getString("board_auth_seq"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -151,8 +206,8 @@ public class BoardCommentDAO {
 		boolean result = false;
 		
 		try {
-			String sql = "delete from board_comment where seq = ? "
-					+ "and comment_auth_seq = ?";
+			String sql = "update board_comment set active = 'n' "
+					+ " where seq = ?  and comment_auth_seq = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, boardCommentDTO.getBoardCommentSeq());
 			pstmt.setString(2, boardCommentDTO.getMemberSeq());
@@ -164,6 +219,122 @@ public class BoardCommentDAO {
 		
 		return result;
 	}
+
+	public boolean updateComment(BoardCommentDTO boardCommentDTO) {
+		boolean result = false;
+		try {
+			String sql = "update board_comment set board_comment= ?, last_modified = sysdate where seq = ? "
+					+ "and comment_auth_seq = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, boardCommentDTO.getBoardComment());
+			pstmt.setString(2, boardCommentDTO.getBoardCommentSeq());
+			pstmt.setString(3, boardCommentDTO.getMemberSeq());
+			if(pstmt.executeUpdate() > 0) result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public Map<String, Boolean> updateRecommend(BoardCommentRecommendDTO boardCommentRecommendDTO) {
+		Map<String, Boolean> result = null;
+		
+		try {
+			String memberSeq = boardCommentRecommendDTO.getMemberSeq();
+			String commentSeq = boardCommentRecommendDTO.getCommentSeq();
+			int recommend = boardCommentRecommendDTO.getRecommend();
+			
+			String alreadyCk = "select count(*) as count "
+					+ "from comment_like "
+					+ "where member_seq = ? and comment_seq = ?";
+			pstmt = conn.prepareStatement(alreadyCk);
+			pstmt.setString(1, memberSeq);
+			pstmt.setString(2, commentSeq);
+			rs = pstmt.executeQuery();
+			result = new HashMap<>();
+			if(rs.next()) {
+				result.put("auth", true);
+				result.put("already", rs.getInt("count") > 0 ? true : false);
+			} else {
+				new SQLException("댓글 추천여부 조회 실패");
+			}
+			
+			//추천을 하지 않았을 경우 상태 업데이트
+			if(!result.get("already")) {
+				String insertRecommend = "insert into comment_like(member_seq, comment_seq, comment_like) "
+						+ "values(?, ?, ?)";
+				pstmt = conn.prepareStatement(insertRecommend);
+				pstmt.setString(1, memberSeq);
+				pstmt.setString(2, commentSeq);
+				pstmt.setLong(3, recommend);
+				int insertResult = pstmt.executeUpdate();
+				if(insertResult > 0) {
+					String changeCommentStatus = "update board_comment set ";
+					if(recommend == 1) {
+						changeCommentStatus += "thumbs_up = thumbs_up + 1 ";
+					} else if(recommend == -1) {
+						changeCommentStatus += "thumbs_down = thumbs_down + 1 ";
+					}
+					changeCommentStatus += "where seq = ?";
+					pstmt = conn.prepareStatement(changeCommentStatus);
+					pstmt.setString(1, commentSeq);
+					int commentUpdateResult = pstmt.executeUpdate();
+					if(commentUpdateResult > 0) {
+						result.put("success", true);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("auth", true);
+			result.put("success", false);
+		}
+		
+		return result;
+	}
+
+	public String getCommentCountByBoardSeq(String boardSeq) {
+		String result = null;
+		
+		try {
+			String sql = " select count(*) as count "
+					+ "from board_comment "
+					+ "where board_seq = ? "
+					+ "and ( "
+					+ "         board_comment.active = 'y' "
+					+ "         or board_comment.seq = board_comment.comment_group_seq "
+					+ "         and board_comment.seq in ( "
+					+ "            select comment_group_seq "
+					+ "            from board_comment "
+					+ "            where active = 'y' "
+					+ "            group by comment_group_seq having count(comment_group_seq) > 0 "
+					+ "          ) "
+					+ "    )";
+			
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, boardSeq);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getString("count");
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
 	
 	
 }
+
+
+
+
+
+
+
+
+
+
+

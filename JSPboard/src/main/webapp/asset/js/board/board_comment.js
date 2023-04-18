@@ -1,16 +1,43 @@
 /** 게시판의 board_num와 보고있는 카테고리의 num을 전송하면 댓글 정보를 가져오는 함수 */
-function get_comment(board_num, board_title_num) {
+let comment_list = null;
+function get_comment() {
+	//댓글을 찾아오기 위한 정보
+	let board_num = $('#board_num').val();
+	let board_title_num = $('#board_title_num').val();
+	
+	//댓글 페이징, 정렬을 위한 데이터 가져오기
+	let comment_form = $('.board_comment_data');
+	let page = comment_form.find('.comment_page');
+	let total_page = comment_form.find('.comment_total_page');
+	let sort = comment_form.find('.comment_sort');
+	
 	$.ajax({
 		url: '/board/comment',
 		type: 'GET',
 		data: {
 			boardSeq : board_num,
-			boardTitleSeq : board_title_num
+			boardTitleSeq : board_title_num,
+			page : page.val(),
+			sort : sort.val()
 		},
 		dataType: 'json',
-		success: function(result) {
+		success: function(result) {				
 			if(result != null) {
-				result.forEach(function(value) {
+				//받아온 데이터 초기화
+				total_page.val(result.totalPage);
+				page.val(result.nowPage);
+				sort.val(result.sort);
+				
+				//태그값 동적 변경
+				$('#comment_page').text(page.val());
+				$('#comment_total_page').text(total_page.val());
+				
+				//기존에 존재하는 댓글 삭제
+				$('.comment_list').empty();
+				
+				//태그 동적 추가
+				comment_list = result.commentList;
+				comment_list.forEach(function(value) {
 					put_comment_html(value);
 				});
 			} else {
@@ -50,6 +77,7 @@ function comment_length_ck(comment) {
 function insert_comment(comment_val, event) {	
 	const root_no = $(event.target).closest('.cmt.row').data('root-no');
 	const order_no = $(event.target).closest('.cmt.row').data('order-no');
+	const nickname = $(event.target).closest('.cmt.row').find('#comment_nickname').text();
 	const board_form_data = {};
 	
 	$.each($('.board_view_data').serializeArray(), function() {
@@ -63,21 +91,51 @@ function insert_comment(comment_val, event) {
 			boardFormData : JSON.stringify(board_form_data),
 			comment : comment_val,
 			rootNo : root_no,
-			orderNo : order_no
+			orderNo : order_no,
+			nickname : nickname
 		},
 		dataType: 'json',
 		success: function(result) {
 			if(result == null) { 
 				alert('댓글 등록에 실패했습니다.'); 
 			} else {
-				 put_comment_html(result);
-				 $('.comment > textarea').val('');
-				 change_cmt_cnt_status(1);
+				put_comment_html(result);
+				$('.comment > textarea').val('');
+				change_cmt_cnt_status(1);
 			}
 		},
 		error: function(a, b, c) {
 			console.log(a, b, c);
 			alert('댓글 등록에 실패했습니다.');
+		}
+	});
+}
+/** 댓글수정 */
+function update_comment(reply_no, comment) {
+	$.ajax({
+		url: '/board/comment/update',
+		type: 'POST',
+		data: {
+			replyNo: reply_no,
+			comment: comment
+		},
+		dataType: 'json',
+		success: function(result) {
+			if(result != null && result == true) {
+				$('.comment_submit_container.show').remove();
+				let target = $('a[data-reply-no='+reply_no+']').closest('.cmt.row');
+				target.find('.board_comment_contents').text(comment);
+				//요소가 없는경우 추가
+				if(target.find('.cmt.fixed').length < 1) {
+					target.find('.cmt.regdate').after('<div class="cmt fixed">(수정됨)</div>');					
+				}
+			} else {
+				alert('댓글 수정에 실패했습니다.');
+			}
+		},
+		error: function(a,b,c) {
+			console.log(a, b, c);
+			alert('댓글 수정에 실패했습니다.');
 		}
 	});
 }
@@ -92,7 +150,13 @@ function change_cmt_cnt_status(num) {
 
 
 /** 삭제버튼 클릭시 넘겨져온 reply_no를 통해 댓글을 삭제, 성공시 엘리먼트도 같이 삭제한다.  */
-function delete_comment(reply_no, element) {	
+function delete_comment(reply_no, element) {
+	let target_comment = $('a[data-reply-no='+reply_no+']').closest('.cmt.row');
+	let target_root_no = target_comment.data('root-no');
+	let target_order_no = target_comment.data('order-no');
+	let target_reply_list = $('div[data-root-no='+target_root_no+']');
+	let target_reply_count = target_reply_list.length;
+
 	$.ajax({
 		url: '/board/comment/delete',
 		type: 'POST',
@@ -101,9 +165,23 @@ function delete_comment(reply_no, element) {
 		},
 		dataType: 'json',
 		success: function(result) {
-			if(!(result == null || result == false)) {
+			if(result != null || result != false) {
 				change_cmt_cnt_status(-1);
-				element.remove();
+				if(target_order_no == 1 && target_reply_count > 1) {
+					element.removeClass();
+					element.addClass('deleted');
+					element.empty();
+					element.append('<div class="deleted_area">삭제된 댓글입니다.</div>');
+				} else if(target_order_no > 1 && target_reply_count == 2) {
+					if(target_reply_list.hasClass('deleted')) {
+						target_reply_list.remove();
+						change_cmt_cnt_status(-1);
+					} else {
+						element.remove();
+					}
+				} else {
+					element.remove();
+				}
 			} else {
 				alert('댓글 삭제에 실패했습니다.');
 			}
@@ -113,61 +191,93 @@ function delete_comment(reply_no, element) {
 			alert('댓글 삭제에 실패했습니다.');
 		}
 	});
-
 }
-
+let old_comment = '';
+let current_update_form_target = '';
 /** comment_data를 전달하면 댓글 추가하기 */
 function put_comment_html(comment_data) {
-	console.log(comment_data);
-	//댓글 추가 html 작성
+	
 	let html = '';
-	//조건에 따른 html	
-	let reply_class = (comment_data.boardCommentGroupOrderSeq > 1)
-					? 'reply' : '';	
-	let author_html = (comment_data.memberSeq == comment_data.boardAuthSeq)
-					? '<div class="cmt auth_ck">작성자</div>' : '';
-	let fix_comment_html = (comment_data.boardCommentLastModified != null)
-					? '<div class="cmt fixed">(수정됨)</div>' : '';
-	let first_comment_html = (comment_data.boardCommentGroupOrderSeq == 1)
-					? '<div><a href="javascript:;" class="reply_add" data-reply-no ="'+comment_data.boardCommentSeq+'"">답글</a></div>' : '';
-	let comment_author_html = (comment_data.authorCk)
-					? '<div><a href="javascript:;" class="reply_update" data-reply-no ="'+comment_data.boardCommentSeq+'">수정</a></div>'
-					+ '<div><a href="javascript:;" class="reply_delete" data-reply-no ="'+comment_data.boardCommentSeq+'">삭제</a></div>' : '';
-					
-	html += '<div class="cmt row '+ reply_class +'" data-root-no ="'+comment_data.boardCommentGroupSeq+'" data-order-no ="'+comment_data.boardCommentGroupOrderSeq+'">';
-	html += '	<div class="board_comment_area">';
-	html += '		<div class="comment_author_profile">';
-	html += '			<img src="/asset/images/profile/'+ comment_data.memberProfile +'">';
-	html += '		</div>';
-	html += '		<div class="cmt info">';
-	html += '			<div class="board_comment_author">';
-	html += '				<div id="comment_nickname">'+comment_data.memberNickname+'</div>';
-	html += 				author_html;
-	html += '				<div class="cmt regdate">'+comment_data.boardCommentRegdate+'</div>';
-	html += 				fix_comment_html;
-	html += '			</div>';
-	html += '			<div class="board_comment_contents">'+comment_data.boardComment+'</div>';
-	html += '			<div class="board_comment_bnts">';
-	html += '				<div class="comment_curd_btns">';
-	html +=						first_comment_html;
-	html +=						comment_author_html;
-	html += '				</div>'
-	html += '				<div class="comment_recommend_btns">';
-	html += '					<button>';
-	html += '						<span><i class="fa-regular fa-thumbs-up"></i></span>';
-	html += '						<span>'+ comment_data.boardCommentThumbsUp +'</span>';
-	html += '					</button>';
-	html += '					<button>';
-	html += '						<span><i class="fa-regular fa-thumbs-down"></i></span>';
-	html += '						<span>'+ comment_data.boardCommentThumbsDown +'</span>';
-	html += '					</button>';
-	html += '				</div>';
-	html += '			</div>';
-	html += '		</div>';
-	html += '	</div>';
-	html += '	<div class="comment_view_data reply">';
-	html += '	</div>';
-	html += '</div>';
+	if(comment_data.boardCommentActive == 'y')	{
+		//댓글 추가 html 작성
+		//조건에 따른 html	
+		let reply_class = (comment_data.boardCommentGroupOrderSeq > 1)
+						? 'reply' : '';	
+		let author_html = (comment_data.boardAuthSeq == comment_data.memberSeq)
+						? '<div class="cmt auth_ck">작성자</div>' : '';
+		let fix_comment_html = (comment_data.boardCommentLastModified != null)
+						? '<div class="cmt fixed">(수정됨)</div>' : '';
+		let first_comment_html = (comment_data.boardCommentGroupOrderSeq == 1)
+						? '<div><a href="javascript:;" class="reply_add" data-reply-no ="'+comment_data.boardCommentSeq+'"">답글</a></div>' : '';
+		let comment_author_html = (comment_data.authorCk)
+						? '<div><a href="javascript:;" class="reply_update" data-reply-no ="'+comment_data.boardCommentSeq+'">수정</a></div>'
+						+ '<div><a href="javascript:;" class="reply_delete" data-reply-no ="'+comment_data.boardCommentSeq+'">삭제</a></div>' : '';
+						
+		html += '<div class="cmt row '+ reply_class +'" data-root-no ="'+comment_data.boardCommentGroupSeq+'" data-order-no ="'+comment_data.boardCommentGroupOrderSeq+'" data-no ="'+comment_data.boardCommentSeq+'">';
+		html += '	<div class="board_comment_area">';
+		html += '		<div class="comment_author_profile">';
+		html += '			<img src="/asset/images/profile/'+ comment_data.memberProfile +'">';
+		html += '		</div>';
+		html += '		<div class="cmt info">';
+		html += '			<div class="board_comment_author">';
+		html += '				<div id="comment_nickname">'+comment_data.memberNickname+'</div>';
+		html += 				author_html;
+		html += '				<div class="cmt regdate">'+comment_data.boardCommentRegdate+'</div>';
+		html += 				fix_comment_html;
+		html += '			</div>';
+		html += '			<div class="board_comment_contents">'+comment_data.boardComment+'</div>';
+		html += '			<div class="board_comment_bnts">';
+		html += '				<div class="comment_curd_btns">';
+		html +=						first_comment_html;
+		html +=						comment_author_html;
+		html += '				</div>'
+		html += '				<div class="comment_recommend_btns">';
+		html += '					<button class="comment_thumbs_up" type="button">';
+		html += '						<span><i class="fa-regular fa-thumbs-up"></i></span>';
+		html += '						<span class="comment_thumbs_up_count">'+ comment_data.boardCommentThumbsUp +'</span>';
+		html += '					</button>';
+		html += '					<button class="comment_thumbs_down" type="button">';
+		html += '						<span><i class="fa-regular fa-thumbs-down"></i></span>';
+		html += '						<span class="comment_thumbs_down_count">'+ comment_data.boardCommentThumbsDown +'</span>';
+		html += '					</button>';
+		html += '				</div>';
+		html += '			</div>';
+		html += '		</div>';
+		html += '	</div>';
+		html += '	<div class="comment_view_data reply">';
+		html += '	</div>';
+		html += '</div>';
+	} else if(comment_data.boardCommentActive == 'n' && comment_data.boardCommentGroupOrderSeq == 1) {
+		/*
+		아직 삭제하지말기 - 정상적으로 페이징이 작동하고, 순서대로 추가되는지 확인해야함1
+		const count = comment_list.filter((comment) => {
+			return (comment.boardCommentGroupSeq === comment_data.boardCommentGroupSeq)
+				   &&
+				   (comment.boardCommentActive == 'y')
+		}).length;
+		
+		if(count > 0) {
+			html += '<div class="deleted" data-root-no='+comment_data.boardCommentGroupSeq+'>';
+			html += '	<div class="deleted_area">삭제된 댓글입니다.</div>';
+			html += '</div>';
+		}
+		*/
+		html += '<div class="deleted" data-root-no='+comment_data.boardCommentGroupSeq+'>';
+		html += '	<div class="deleted_area">삭제된 댓글입니다.</div>';
+		html += '</div>';
+	}
+	
+	/*
+	아직 삭제하지말기 - 정상적으로 페이징이 작동하고, 순서대로 추가되는지 확인해야함2
+	if(comment_data.boardCommentGroupOrderSeq > 1) {
+		let add_group_seq = comment_data.boardCommentGroupSeq;
+		let last_element = $('.comment_list > div[data-root-no='+add_group_seq+']').last();
+		last_element.after(html);
+		$('.comment_submit_container.show').remove();
+	} else {
+		$('.comment_list').append(html);
+	}
+	*/
 	$('.comment_list').append(html);
 	
 	/** 삭제버튼 */
@@ -176,17 +286,48 @@ function put_comment_html(comment_data) {
 		delete_comment($(this).data('reply-no'), delete_btn.closest('.cmt.row'));
 	});
 	
-	/** 업데이트 버튼 - 구현예정 */
+	/** 업데이트 버튼클릭시 폼 보여주기 */
+	let status = '';
 	let update_btn = $('.reply_update[data-reply-no='+comment_data.boardCommentSeq+']');
-	update_btn.on('click', function() {
-		add_btn.closest('.board_comment_area')
-		.next('.comment_view_data.reply')
-		.append(get_form_html());
+	update_btn.on('click', function(e) {
+		e.stopPropagation();
+		//답글 수정 폼 동적생성
+		let form = $(e.currentTarget).closest('.cmt.row').find('.board_comment_contents');
+		let form_target = form.find('.comment_submit_container');	
+		//기존에 존재하는 모든 form 제거
+		$('.comment_submit_container.show').remove();
+		//form_target이 존재하지 않는 경우 추가, 존재하는 경우 제거			
+		if(form_target.length == 0 || status == 'add') {
+			//상태유지를 위한 변수
+			maintain_state(current_update_form_target, old_comment);
+			old_comment = form.text();
+			current_update_form_target = form;
+			//추가된 동적폼에 이벤트 추가
+			form.text('');
+			let reply_no = $(this).data('reply-no');
+			let append_html = form.append(get_form_html('update'));
+			let form_submit_btn = append_html.find('.comment_submit_btn > button');
+			append_html.find('.comment > textarea').val(old_comment);
+			let comment = '';
+			
+			form_submit_btn.on('click', function() {
+				comment = append_html.find('.comment > textarea').val();	
+				if(old_comment == comment) {
+					alert('변경된 내용이 없습니다.');
+				} else if(comment_length_ck(comment)) {
+					update_comment(reply_no, comment);
+				}
+			});
+		} else if(old_comment.length != 0) {
+			maintain_state(current_update_form_target, old_comment);
+		}
+		status = 'update';
 	});
 	
-	/** 답글버튼 클릭시 폼 보여주기 - 구현중 */
+	/** 답글버튼 클릭시 폼 보여주기 */
 	let add_btn = $('.reply_add[data-reply-no='+comment_data.boardCommentSeq+']');
 	add_btn.on('click', function(e) {
+		maintain_state(current_update_form_target, old_comment);
 		e.stopPropagation();	
 		//답글 폼 동적생성
 		let form = $(e.currentTarget).closest('.board_comment_area').next('.comment_view_data.reply');
@@ -194,9 +335,11 @@ function put_comment_html(comment_data) {
 		//기존에 존재하는 모든 form 제거
 		$('.comment_submit_container.show').remove();
 		//form_target이 존재하지 않는경우 추가, 존재하는경우 제거
-		if(form_target.length == 0) {
+		console.log(form_target);
+		
+		if(form_target.length == 0 || status == 'update') {
 			//추가된 동적폼에 이벤트 추가
-			let append_html = form.append(get_form_html());
+			let append_html = form.append(get_form_html('add'));
 			let form_submit_btn = append_html.find('.comment_submit_btn > button');
 			let comment = '';
 			append_html.find('.comment > textarea').on('input', function() {
@@ -207,20 +350,80 @@ function put_comment_html(comment_data) {
 					insert_comment(comment, event);
 				}
 			});
-			
-		} else if(form_target.length == 1) {
-			form_target.remove();
+		}
+		status = 'add';
+	});
+	
+	
+}
+/** 추천, 비추천 버튼 클릭시 */
+$(document).on('click', '.comment_thumbs_up, .comment_thumbs_down', function() {
+	let recommend = null;
+	let comment_no = null;
+	let thumbs_up_count = $(this).find('.comment_thumbs_up_count');
+	let thumbs_down_count = $(this).find('.comment_thumbs_down_count');
+	
+	if($(this).hasClass('comment_thumbs_up')) {
+		recommend = 1;
+	} else if($(this).hasClass('comment_thumbs_down')) {
+		recommend = -1;
+	}
+	comment_no = $(this).closest('.cmt.row').data('no');
+
+	$.ajax({
+		url: '/board/comment/recommend',
+		data: {
+			recommend: recommend,
+			comment_no: comment_no
+		},
+		dataType: 'json',
+		success: function(result) {
+			let nowCount = 0;
+			if(result.already == true) {
+				alert('이미 해당 댓글에 추천 또는 비추천을 하셨습니다.');
+			} else if(result.success == true) {
+				if(recommend == 1) {
+					nowCount = parseInt(thumbs_up_count.text());
+					console.log(nowCount);
+					thumbs_up_count.text(nowCount + 1);
+				} else if(recommend == -1) {
+					nowCount = parseInt(thumbs_down_count.text());
+					thumbs_down_count.text(nowCount + 1);
+				}
+			} else if(result.auth == false) {
+				alert('로그인 후 이용 가능한 서비스입니다.');
+			} else {
+				alert('추천 등록에 실패했습니다.');
+			}
+		},
+		error: function(a, b, c) {
+			console.log(a, b, c);
+			alert('추천 등록에 실패했습니다.');
 		}
 	});
-}
-
-$(document).on('click', '.comment_util_btns > button', function() {
-	emoji_btn();
 });
 
-function get_form_html() {
+/** 이모티콘 버튼 클릭시 */
+$(document).on('click', '.comment_util_btns > .emoji', function() {
+	emoji_btn();
+});
+/** 취소버튼 클릭시 */
+$(document).on('click', '.comment_util_btns > .cancel', function() {
+	maintain_state(current_update_form_target, old_comment);
+	$('.comment_submit_container.show').remove();
+});
+
+/** 업데이트 버튼 클릭이후 추가조작시 상태유지하기 */
+function maintain_state(form, comment) {		
+	if(form.length>0 && comment.length>0) form.text(comment);
+}
+
+function get_form_html(type) {
+	if(type == 'update') add_update_class = 'update';
+	else add_update_class = '';
+
 	let form_html = '';
-	form_html += '<div class="comment_submit_container show">';
+	form_html += '<div class="comment_submit_container show '+add_update_class+'">';
 	form_html += '	<div class="comment_input">';
 	form_html += '		<div class="comment">';
 	form_html += '			<textarea name="comment" placeholder="내용을 입력해주세요."></textarea>';
@@ -230,7 +433,8 @@ function get_form_html() {
 	form_html += '		</div>';
 	form_html += '	</div>';
 	form_html += '	<div class="comment_util_btns">';
-	form_html += '		<button type="button">이모티콘</button>';
+	form_html += '		<button type="button" class="emoji">이모티콘</button>';
+	form_html += '		<button type="button" class="cancel">취소</button>';
 	form_html += '	</div>';
 	form_html += '</div>';
 	
@@ -249,12 +453,50 @@ $(() => {
 	
 	//게시판 보기일때 댓글 가져오기
 	if(cureentURI.pathname == '/board/view') {
-		let board_num = $('#board_num').val();
-		let board_title_num = $('#board_title_num').val();
-		get_comment(board_num, board_title_num);
+		get_comment();
 	}
+	
+	//현재 보고있는 글 표시하기
+	$('.board_list').find('.board_num').each(function() {
+		if($(this).text() == cureentURI.searchParams.get('board')) {
+			$(this).text('');
+			$(this).append('<i class="fa-solid fa-angle-right"></i>');
+			$(this).closest('.search_board').addClass('active');
+		}
+	});
+	
+});
+/** 댓글 정렬버튼 클릭시 */
+$('.board_comment_sort_btn li a').on('click', function() {
+	let comment_data = $('.board_comment_data');
+	comment_data.find('.comment_sort').val($(this).data('cmt-sort'));
+	comment_data.find('.comment_page').val('1');
+	get_comment();
 });
 
+
+/** 댓글 페이징버튼 클릭시 */
+$('.move_prev_comment_page, .move_next_comment_page').on('click', function() {
+	let comment_data = $('.board_comment_data');
+	let now_page = comment_data.find('.comment_page');
+	let total_page = comment_data.find('.comment_total_page');
+	let now_page_val = parseInt(now_page.val());
+	let total_page_val = parseInt(total_page.val());
+	
+	//이전버튼 클릭시
+	if($(this).hasClass('move_prev_comment_page')) {
+		if(now_page_val > 1) {
+			now_page.val(now_page_val - 1);
+			get_comment();
+		}
+	//다음부턴 클릭시
+	} else if($(this).hasClass('move_next_comment_page')) {
+		if(now_page_val < total_page_val) {
+			now_page.val(now_page_val + 1);
+			get_comment();
+		}
+	}
+});
 
 /* 댓글 양식 */
 /*
