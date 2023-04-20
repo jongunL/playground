@@ -44,7 +44,7 @@ public class BoardComment extends HttpServlet {
 		int nowPage = 0;	//현재 페이지
 		int begin = 0;		//페이지 시작
 		int end = 0;		//페이지 끝
-		int pageSize = 3;	//한 페이지당 출력할 댓글 수 default = 10
+		int pageSize = 50;	//한 페이지당 출력할 댓글 수 default = 10
 		int totalCount = 0;	//총 댓글 수
 		int totalPage = 0;	//총 페이지 수
 		//댓글 정렬 옵션 - 최신순(newest), 등록일순(registrationDate)
@@ -99,9 +99,11 @@ public class BoardComment extends HttpServlet {
 		resp.setContentType("application/json");
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("commentList", new Gson().toJsonTree(commentList));
+		jsonObject.put("pageSize", pageSize);
 		jsonObject.put("totalPage", totalPage);
 		jsonObject.put("nowPage", nowPage);
 		jsonObject.put("sort", commentSortType);
+		jsonObject.put("totalCount", totalCount);
 		PrintWriter writer = resp.getWriter();
 		writer.write(jsonObject.toString());
 	}

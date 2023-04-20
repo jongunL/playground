@@ -41,7 +41,7 @@ public class BoardList extends HttpServlet {
 		
 		//방문한 카테고리에 추가 및 리스트 가져오기
 		String visitCategoryList = null;
-		if(category != null && boardTitleDTO.getBoardTitle() != null) {
+		if(category != null && (boardTitleDTO != null && boardTitleDTO.getBoardTitle() != null)) {
 			VisitCategory.addVisitCategory(req, resp, category, boardTitleDTO.getBoardTitle());
 			visitCategoryList = VisitCategory.getVisitCategoryList(req, resp);
 		}
@@ -72,13 +72,17 @@ public class BoardList extends HttpServlet {
 				board.setBoardSeq(boardSeq);
 				board = boardDAO.getBoard(board);
 				//로그인 사용자와, board 작성자 일치여부 확인하기
-				if(board.getMemberSeq() != null && memberSeq != null) {
+				if((board != null && board.getMemberSeq() != null) && memberSeq != null) {
+					//삭제된 게시물을 가져오는 경우
+					if(board.getBoardActive() != null && board.getBoardActive().equals("n")) {
+						resp.sendRedirect("/board/deleted");
+						return;
+					}
 					board.setBoardAuthor(board.getMemberSeq().equals(memberSeq));
 				} else {
 					board.setBoardAuthor(false);
 				}
 			}
-			System.out.println(board.toString());
 		}
 		//가져온 board데이터 후처리
 		if(board != null) {

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import board.start.board.BoardDAO;
+import board.start.board.BoardDTO;
 import board.start.board.BoardSubTitleDTO;
 import board.start.board.BoardTitleDTO;
 import board.start.util.Auth;
@@ -22,19 +23,26 @@ public class BoardWrite extends HttpServlet {
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.setCharacterEncoding("UTF-8");
+		resp.setCharacterEncoding("UTF-8");
+		
+		BoardDAO boardDAO = new BoardDAO();
+		String category = req.getParameter("num");
+		String boardSeq = req.getParameter("board");
+		String type = "write";
 
+		//로그인 되지 않은경우
 		if(!Auth.CheckAuth(req)) {
 			resp.sendRedirect("/login");
 			return;	
 		}
-		
-		BoardDAO boardDAO = new BoardDAO();
-		String category = req.getParameter("num");
-		
+		//베스트 게시물에 글을 작성하려고 하는경우
 		if(category != null && category.equals("1")) {
 			resp.sendRedirect("/board/lists?num=1");
 			return;
 		}
+		
+		
 
 		//board Title 가져오기
 		BoardTitleDTO boardTitleDTO = new BoardTitleDTO();
@@ -57,7 +65,33 @@ public class BoardWrite extends HttpServlet {
 		BoardSubTitleDTO boardSubTitleDTO = new BoardSubTitleDTO();
 		boardSubTitleDTO.setBoardTitleSeq(category);
 		List<BoardSubTitleDTO> boardSubTitleList = boardDAO.getBoardSubTitle(boardSubTitleDTO);
+		
+		//글 수정하기일시 추가 데이터 가져오기
+		if(boardSeq != null) {
+			type = "edit";
+			BoardDTO boardDTO = new BoardDTO();
+			boardDTO.setBoardTitleSeq(category);
+			boardDTO.setBoardSeq(boardSeq);
+			boardDTO = boardDAO.getBoard(boardDTO);
+			//삭제된 게시물을 가져오는 경우
+			if(boardDTO.getBoardActive() != null && boardDTO.getBoardActive().equals("n")) {
+				resp.sendRedirect("/board/deleted");
+				return;
+			}
+			//파일 출력을 위해 역슬래시를 슬래시로 변경
+			String pattern = "\\\\";
+			String replacement = "/";
+			boardDTO.setBoardContent(boardDTO.getBoardContent().replaceAll(pattern, replacement));
+			
+			//정상적으로 게시물을 가져온 경우
+			req.setAttribute("subCategory", boardDTO.getBoardSubTitleSeq());
+			req.setAttribute("subject", boardDTO.getBoardSubject());
+			req.setAttribute("boardContent", boardDTO.getBoardContent());
+		}
+		
+		req.setAttribute("type", type);
 		req.setAttribute("category", category);
+		req.setAttribute("board", boardSeq);
 		req.setAttribute("boardTitle", boardTitleDTO);
 		req.setAttribute("boardSubTitleList", boardSubTitleList);
 		

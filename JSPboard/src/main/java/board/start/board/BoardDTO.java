@@ -10,11 +10,13 @@ import lombok.ToString;
 public class BoardDTO {
 	private boolean boardAuthor;
 	private String boardSeq;
+	private String boardActive;
 	private String boardTitleSeq;
 	private String boardTitle;
 	private String boardSubTitleSeq;
 	private String boardSubTitle;
 	private String memberSeq;
+	private String memberActive;
 	private String memberNickname;
 	private String memberGrade;
 	private String memberProfile;

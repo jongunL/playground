@@ -23,24 +23,12 @@
 	</div>
 	<script type="text/javascript" src="/asset/js/view_mode.js"></script>
 	<script type="text/javascript">
-		<c:if test="${result eq true}">
-			<c:if test="${type eq 'write'}">
-				location.href = '/board/lists?num=${category}';
-			</c:if>
-			<c:if test="${type eq 'edit'}">
-				location.href = '/board/view?num=${category}&board=${board}';
-			</c:if>
-		</c:if>
-		<c:if test="${result eq false}">
-			<c:if test="${type eq 'write'}">
-				alert('글 작성에 실패했습니다. 잠시후 다시 시도해주세요.');
-				location.href = '/board/lists?num=${category}';
-			</c:if>
-			<c:if test="${type eq 'edit'}">
-				alert('글 수정에 실패했습니다. 잠시후 다시 시도해주세요.');
-				location.href = '/board/view?num=${category}&board=${board}';
-			</c:if>
-		</c:if>
+		if(${result eq true}) {
+			location.href = '/board/lists?num=${title}';
+		} else {
+			alert('글 삭제에 실패했습니다.');
+			history.back();
+		}
 	</script>
 </body>
 </html>

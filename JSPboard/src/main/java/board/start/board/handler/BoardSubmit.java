@@ -46,6 +46,9 @@ public class BoardSubmit extends HttpServlet {
 		String subject = req.getParameter("board_subject");
 		String content = req.getParameter("content");
 		String filesData = req.getParameter("filesData");
+		//수정일 경우 추가되는 데이터
+		String type = req.getParameter("type");
+		String boardSeq = req.getParameter("board");
 		List<Map<String, String>> files = null;
 		
 		//이미지 파일에 대한 후처리를 해준다.
@@ -78,12 +81,23 @@ public class BoardSubmit extends HttpServlet {
 				boardDTO.setBoardSubject(subject);
 				boardDTO.setBoardContent(content);
 				boardDTO.setMemberSeq(auth.get("seq"));
-				result = dao.saveBoard(boardDTO, files);	
+				//글 수정하기인 경우
+				if(type != null && type.equals("edit")) {
+					boardDTO.setBoardSeq(boardSeq);
+					result = dao.updateBoard(boardDTO, files);
+				//글 작성하기인 경우
+				} else if(type != null && type.equals("write")) {
+					result = dao.saveBoard(boardDTO, files);
+				}
+				
 			}//if - 게시판 작성양식, 활성화 계정
 		}//if - 잘못된 값 유입, 로그인되지 않은경우
 
 		req.setAttribute("result", result);
 		req.setAttribute("category", category);
+		req.setAttribute("type", type);
+		req.setAttribute("board", boardSeq);
+		
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/WEB-INF/view/board/board_writeOk.jsp");
 		dispatcher.forward(req, resp);
 	}

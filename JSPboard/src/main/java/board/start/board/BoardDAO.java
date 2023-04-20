@@ -64,7 +64,8 @@ public class BoardDAO {
 					+ "				)"	
 					+ "			) as board_comment_count, "
 					+ "			m.profile as member_profile, b.seq as board_seq, m.seq as member_seq,"
-					+ "			b.board_title_seq as board_title_seq "
+					+ "			b.board_title_seq as board_title_seq, b.active as board_active,"
+					+ "			b.board_sub_title_seq as board_sub_title_seq "
 					+ "		from board b "
 					+ "		inner join member m on b.member_seq = m.seq "
 					+ "		inner join board_sub_title bst on b.board_sub_title_seq = bst.seq "
@@ -92,6 +93,8 @@ public class BoardDAO {
 				result.setMemberProfile(rs.getString("member_profile"));
 				result.setBoardSeq(rs.getString("board_seq"));
 				result.setMemberSeq(rs.getString("member_seq"));
+				result.setBoardActive(rs.getString("board_active"));
+				result.setBoardSubTitleSeq(rs.getString("board_sub_title_seq"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -128,6 +131,7 @@ public class BoardDAO {
 					+ ")"
 					+ "		   left join board_manager bm on (m.seq = bm.member_seq and bm.board_title_seq = ? and bm.active = 'y') "
 					+ "	   where 1 = 1"
+					+ "			 and b.active = 'y' "
 					+ "			 and b.board_title_seq = ? ";
 			//글 유형
 			if(board_option.get("listType").equals("recommend")) {
@@ -204,6 +208,75 @@ public class BoardDAO {
 			e.printStackTrace();
 		}
 		
+		return result;
+	}
+	
+	public boolean updateBoard(BoardDTO boardDTO, List<Map<String, String>> files) {
+		boolean result = false;
+		
+		try {
+			String updateBoard = "update board "
+					+ "set "
+					+ "    last_modified = sysdate, "
+					+ "    subject = ?, "
+					+ "    contents = ?, "
+					+ "    board_sub_title_seq = ? "
+					+ "where "
+					+ "    active = 'y' and seq = ? and member_seq = ? ";
+			pstmt = conn.prepareStatement(updateBoard);
+			pstmt.setString(1, boardDTO.getBoardSubject());
+			pstmt.setString(2, boardDTO.getBoardContent());
+			pstmt.setString(3, boardDTO.getBoardSubTitleSeq());
+			pstmt.setString(4, boardDTO.getBoardSeq());
+			pstmt.setString(5, boardDTO.getMemberSeq());
+			//쿼리가 실패한경우
+			if(pstmt.executeUpdate() != 1) {
+				throw new SQLException("updateBoard board Update Failed");
+			}
+			//파일이 등록되어 추가적인 DB작업을 해야하는 경우
+			if(files != null && files.size() > 0) {
+				//최근에 생성된 board Seq를 가져온다.
+				long boardSeq = Long.valueOf(boardDTO.getBoardSeq());
+				long fileSeq; 
+
+				//이후 수행해야하는 추가적인 쿼리를 등록한다.
+				String insertFile = 
+						"insert into tbl_file(seq, original_filename, save_filename) "
+									+ "values(tbl_file_seq.nextval, ?, ?)";
+				String insertContentFile = 
+					"insert into content_file(board_seq, file_seq) "
+									+ "values(?, ?)";
+				pstmt = conn.prepareStatement(insertFile);
+				PreparedStatement pstmt2 = conn.prepareStatement(insertContentFile);
+				for(int i=0; i<files.size(); i++) {
+					pstmt.setString(1, files.get(i).get("originalFileName"));
+					pstmt.setString(2, files.get(i).get("saveFileName"));
+					if(pstmt.executeUpdate() != 1) {
+						throw new SQLException("saveBoard tbl_file Insert Failed");
+					}
+					//tbl_seq의 insert결과로 반환되는 seq를 반환받는다.
+					String selectTblFileSeq = "select tbl_file_seq.currval from dual";
+					stmt = conn.createStatement();
+					rs = stmt.executeQuery(selectTblFileSeq);
+					if(rs.next()) {
+						fileSeq = rs.getLong(1);
+					} else {
+						throw new SQLException("saveBoard tlb_file Seq get Failed");
+					}
+					//이후
+					pstmt2.setLong(1, boardSeq);
+					pstmt2.setLong(2, fileSeq);
+					if(pstmt2.executeUpdate() != 1) {
+						throw new SQLException("saveBoard content_file Insert Failed");
+					}
+				}//for문 
+			}//파일등록을 위한 if문
+			
+			//예외발생 없이 해당위치까지 도달하였다면 true 리턴
+			result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 	
@@ -537,6 +610,24 @@ public class BoardDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 			result.put("success", false);
+		}
+		
+		return result;
+	}
+
+	public boolean deleteBoard(BoardDTO boardDTO) {
+		boolean result = false;
+		
+		try {
+			String sql = "update board set active = 'n' where seq = ? and member_seq = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, boardDTO.getBoardSeq());
+			pstmt.setString(2, boardDTO.getMemberSeq());
+			if(pstmt.executeUpdate() > 0) {
+				result = true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		return result;

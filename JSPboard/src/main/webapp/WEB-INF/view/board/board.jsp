@@ -238,6 +238,10 @@
 		display: inline-block;
 	}
 	
+	.board_comment_sort > ul > li > a.active {
+		font-weight: bold;
+	}
+	
 	.board_comment_container {
 		border-top: 3px solid black;
 	}
@@ -402,6 +406,10 @@
 		color: cornflowerblue;
 	}
 	/* 게시판 글 댓글 페이징양식 */
+	.comment_paging_box.hidden {
+		display: none;
+	}
+	
 	.comment_paging_box {
 		display: flex;
 		justify-content: center;
@@ -710,7 +718,7 @@
 									<c:if test="${board.boardAuthor eq true}">
 									<div>
 										<span><a href="/board/write?num=${board.boardTitleSeq}&board=${board.boardSeq}">수정</a></span>
-										<span><a href="/board/delete?board=${board.boardSeq}">삭제</a></span>
+										<span><a href="/board/delete?num=${board.boardTitleSeq}&board=${board.boardSeq}">삭제</a></span>
 									</div>
 									</c:if>
 								</div>
@@ -769,13 +777,14 @@
 									<input type="hidden" class="comment_total_page" name="total_page">
 									<input type="hidden" class="comment_page" name="page">
 									<input type="hidden" class="comment_sort" name="sort">
+									<input type="hidden" class="comment_total_count" name="count">
+									<input type="hidden" class="comment_page_size" name="size">
 								</form>
 								<div class="comment_list">
 									<!-- ajax - 동적태그생성 -->
 								</div>
 								<!-- 댓글 페이징 -->
-								<c:if test="${board.boardCommentCount > 0}">
-								<div class="comment_paging_box">
+								<div class="comment_paging_box ${board.boardCommentCount > 0 ? '' : 'hidden'}">
 									<div class="comment_pageing">
 										<button class="move_prev_comment_page"><i class="fa-solid fa-angle-left"></i></button>
 										<span>
@@ -786,7 +795,6 @@
 										<button class="move_next_comment_page"><i class="fa-solid fa-chevron-right"></i></button>
 									</div>
 								</div>
-								</c:if>
 							</div>
 							<!-- 게시판 댓글작성 -->
 							<div class="comment_view_data">

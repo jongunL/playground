@@ -1,4 +1,4 @@
-/** 게시판의 board_num와 보고있는 카테고리의 num을 전송하면 댓글 정보를 가져오는 함수 */
+/** cooment_from 데이터를 이용해 동적으로 댓글을 가져오는 ajax 단순 불러오기가 아닌 댓글등록시에는 인자를 통해 태그에 이벤트 추가 */
 let comment_list = null;
 function get_comment() {
 	//댓글을 찾아오기 위한 정보
@@ -10,6 +10,8 @@ function get_comment() {
 	let page = comment_form.find('.comment_page');
 	let total_page = comment_form.find('.comment_total_page');
 	let sort = comment_form.find('.comment_sort');
+	let total_count = comment_form.find('.comment_total_count');
+	let page_size = comment_form.find('.comment_page_size');
 	
 	$.ajax({
 		url: '/board/comment',
@@ -27,6 +29,8 @@ function get_comment() {
 				total_page.val(result.totalPage);
 				page.val(result.nowPage);
 				sort.val(result.sort);
+				total_count.val(result.totalCount);
+				page_size.val(result.pageSize);
 				
 				//태그값 동적 변경
 				$('#comment_page').text(page.val());
@@ -74,12 +78,24 @@ function comment_length_ck(comment) {
 }
 
 /** comment_val = 입력받은 댓글 내용, form_no 전송하는 form의 no */
-function insert_comment(comment_val, event) {	
+function insert_comment(comment_val, event) {
+	const target_btn = $(event.target);		
 	const root_no = $(event.target).closest('.cmt.row').data('root-no');
 	const order_no = $(event.target).closest('.cmt.row').data('order-no');
 	const nickname = $(event.target).closest('.cmt.row').find('#comment_nickname').text();
 	const board_form_data = {};
 	
+	//현제 페이징 위치에따라서 추가여부
+	const comment_data = $('.board_comment_data');
+	const page_size = comment_data.find('.comment_page_size');
+	const now_page = comment_data.find('.comment_page');
+	const total_page = comment_data.find('.comment_total_page');
+	const total_count = comment_data.find('.comment_total_count');
+	const page_size_val = parseInt(page_size.val());
+	const now_page_val = parseInt(now_page.val());
+	const total_page_val = parseInt(total_page.val());
+	const total_count_val = parseInt(total_count.val());
+		
 	$.each($('.board_view_data').serializeArray(), function() {
 		board_form_data[this.name] = this.value;
 	});
@@ -96,13 +112,38 @@ function insert_comment(comment_val, event) {
 		},
 		dataType: 'json',
 		success: function(result) {
-			if(result == null) { 
-				alert('댓글 등록에 실패했습니다.'); 
-			} else {
-				put_comment_html(result);
+			//댓글 등록에 성공했을 경우 공통로직
+			if(result != null) {
+				total_count.val(total_count_val + 1);
 				$('.comment > textarea').val('');
 				change_cmt_cnt_status(1);
+				$('.comment_submit_container.show').remove();
+			} else {
+				alert('댓글 등록에 실패했습니다.');
+				return;
 			}
+			
+			//답글
+			if(target_btn.hasClass('cmt_reply_btn')) {
+				get_comment();
+			//댓글
+			} else {
+				//현재 페이지가 마지막 페이지이고, 댓글 추가시 페이지 최대갯수를 초과하지 않는 경우
+				if((now_page_val == total_page_val) && (total_count_val/page_size_val < total_page_val)) {
+					put_comment_html(result);
+				//댓글 추가시 페이지 최대갯수를 초과하는 경우
+				} else if(total_count_val/page_size_val >= total_page_val) {
+					total_page.val(total_page_val+1);
+					$('#comment_total_page').text(total_page.val());
+					
+					//첫 등록 댓글인 경우
+					if(total_count_val == 0) {
+						put_comment_html(result);
+						$('.comment_paging_box').removeClass('hidden');
+					}
+				} 
+			}	
+
 		},
 		error: function(a, b, c) {
 			console.log(a, b, c);
@@ -157,6 +198,11 @@ function delete_comment(reply_no, element) {
 	let target_reply_list = $('div[data-root-no='+target_root_no+']');
 	let target_reply_count = target_reply_list.length;
 
+	//페이징 처리를 위한 데이터
+	const comment_form_data = $('.board_comment_data');
+	const comment_total_count = comment_form_data.find('.comment_total_count');
+	const comment_total_count_val = parseInt(comment_total_count.val());
+
 	$.ajax({
 		url: '/board/comment/delete',
 		type: 'POST',
@@ -167,6 +213,7 @@ function delete_comment(reply_no, element) {
 		success: function(result) {
 			if(result != null || result != false) {
 				change_cmt_cnt_status(-1);
+				comment_total_count.val(comment_total_count_val-1);
 				if(target_order_no == 1 && target_reply_count > 1) {
 					element.removeClass();
 					element.addClass('deleted');
@@ -182,6 +229,22 @@ function delete_comment(reply_no, element) {
 				} else {
 					element.remove();
 				}
+				
+				//댓글을 삭제한 이후 페이징을 위한 추가작업
+				const comment_form_data = $('.board_comment_data');
+				const page = comment_form_data.find('.comment_page');
+				const page_val = parseInt(page.val());
+				
+				alert('삭제되었습니다.');
+				if($('.comment_list').children().length == 0) {
+					if(page_val > 1) {
+						page.val(page_val - 1);
+					//첫페이지인경우
+					} else if(page_val == 1) {
+						$('.comment_paging_box').addClass('hidden');
+					}
+				}
+				get_comment();
 			} else {
 				alert('댓글 삭제에 실패했습니다.');
 			}
@@ -248,36 +311,10 @@ function put_comment_html(comment_data) {
 		html += '	</div>';
 		html += '</div>';
 	} else if(comment_data.boardCommentActive == 'n' && comment_data.boardCommentGroupOrderSeq == 1) {
-		/*
-		아직 삭제하지말기 - 정상적으로 페이징이 작동하고, 순서대로 추가되는지 확인해야함1
-		const count = comment_list.filter((comment) => {
-			return (comment.boardCommentGroupSeq === comment_data.boardCommentGroupSeq)
-				   &&
-				   (comment.boardCommentActive == 'y')
-		}).length;
-		
-		if(count > 0) {
-			html += '<div class="deleted" data-root-no='+comment_data.boardCommentGroupSeq+'>';
-			html += '	<div class="deleted_area">삭제된 댓글입니다.</div>';
-			html += '</div>';
-		}
-		*/
 		html += '<div class="deleted" data-root-no='+comment_data.boardCommentGroupSeq+'>';
 		html += '	<div class="deleted_area">삭제된 댓글입니다.</div>';
 		html += '</div>';
 	}
-	
-	/*
-	아직 삭제하지말기 - 정상적으로 페이징이 작동하고, 순서대로 추가되는지 확인해야함2
-	if(comment_data.boardCommentGroupOrderSeq > 1) {
-		let add_group_seq = comment_data.boardCommentGroupSeq;
-		let last_element = $('.comment_list > div[data-root-no='+add_group_seq+']').last();
-		last_element.after(html);
-		$('.comment_submit_container.show').remove();
-	} else {
-		$('.comment_list').append(html);
-	}
-	*/
 	$('.comment_list').append(html);
 	
 	/** 삭제버튼 */
@@ -334,9 +371,7 @@ function put_comment_html(comment_data) {
 		let form_target = form.find('.comment_submit_container.show');
 		//기존에 존재하는 모든 form 제거
 		$('.comment_submit_container.show').remove();
-		//form_target이 존재하지 않는경우 추가, 존재하는경우 제거
-		console.log(form_target);
-		
+		//form_target이 존재하지 않는경우 추가, 존재하는경우 제거		
 		if(form_target.length == 0 || status == 'update') {
 			//추가된 동적폼에 이벤트 추가
 			let append_html = form.append(get_form_html('add'));
@@ -384,7 +419,6 @@ $(document).on('click', '.comment_thumbs_up, .comment_thumbs_down', function() {
 			} else if(result.success == true) {
 				if(recommend == 1) {
 					nowCount = parseInt(thumbs_up_count.text());
-					console.log(nowCount);
 					thumbs_up_count.text(nowCount + 1);
 				} else if(recommend == -1) {
 					nowCount = parseInt(thumbs_down_count.text());
@@ -429,7 +463,7 @@ function get_form_html(type) {
 	form_html += '			<textarea name="comment" placeholder="내용을 입력해주세요."></textarea>';
 	form_html += '		</div>';
 	form_html += '		<div class="comment_submit_btn">';
-	form_html += '			<button type="button">등록</button>';
+	form_html += '			<button class="cmt_reply_btn" type="button">등록</button>';
 	form_html += '		</div>';
 	form_html += '	</div>';
 	form_html += '	<div class="comment_util_btns">';
@@ -465,10 +499,26 @@ $(() => {
 		}
 	});
 	
+	//댓글 옵션 선택하기
+	if($('.comment_sort').val() == '') {
+		$('.board_comment_sort_btn').find('a[data-cmt-sort="registrationDate"]').addClass('active');
+	}
+	
 });
 /** 댓글 정렬버튼 클릭시 */
 $('.board_comment_sort_btn li a').on('click', function() {
 	let comment_data = $('.board_comment_data');
+	let registrationDate_btn = $('.board_comment_sort_btn').find('a[data-cmt-sort="registrationDate"]');
+	let newest_btn = $('.board_comment_sort_btn').find('a[data-cmt-sort="newest"]');
+	
+	if($(this).data('cmt-sort') == 'newest') {
+		newest_btn.addClass('active');
+		registrationDate_btn.removeClass('active');
+	} else {
+		newest_btn.removeClass('active');
+		registrationDate_btn.addClass('active');
+	}
+	
 	comment_data.find('.comment_sort').val($(this).data('cmt-sort'));
 	comment_data.find('.comment_page').val('1');
 	get_comment();
@@ -496,6 +546,10 @@ $('.move_prev_comment_page, .move_next_comment_page').on('click', function() {
 			get_comment();
 		}
 	}
+	let position = $('#focus_c').offset().top;
+	window.scrollTo({
+		top: position
+  	});
 });
 
 /* 댓글 양식 */
