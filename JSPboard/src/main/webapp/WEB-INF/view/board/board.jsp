@@ -518,7 +518,7 @@
 		padding: 6px 0;
 	}
 	.board_root_container > .board_list > tbody > tr > td {
-		padding: 3px 0;
+		padding: 0.2rem 0.4rem;
 	}
 	
 	.board_root_container > .board_list > tbody > .search_board.active {
@@ -712,7 +712,12 @@
 							<div class="board_view_body">
 								<div class="board_view_title">
 									<h1>
+										<c:if test="${boardTitleSeq eq 1}">
+										<span>[${board.boardTitle}]</span>
+										</c:if>
+										<c:if test="${boardTitleSeq ne 1}">
 										<span>[${board.boardSubTitle}]</span>
+										</c:if>
 										<span>${board.boardSubject}</span>
 									</h1>
 									<c:if test="${board.boardAuthor eq true}">
@@ -820,14 +825,18 @@
 						<div class="board_category">
 							<div class="category">
 								<button type="button" onclick="listSearchType('all')">전체글</button>
+								<c:if test="${boardTitleSeq ne 1}">
 								<button type="button" onclick="listSearchType('recommend')">화제글</button>
+								</c:if>
 							</div>
+							<c:if test="${boardTitleSeq ne 1}">
 							<div class="sub_category">
 								<a href="javascript:;" onclick="listSearchSubTitle('all')">전체</a>
 								<c:forEach var="subTitle" items="${boardSubTitleList}">
 								<a href="javascript:;" onclick="listSearchSubTitle(${subTitle.boardSubTitleSeq})">${subTitle.boardSubTitle}</a>
 								</c:forEach>
 							</div>
+							</c:if>
 						</div>
 						<div class="board_util_btn">
 							<select class="board_show_amout" name="board_show_amout">
@@ -850,7 +859,12 @@
 							<thead>
 								<tr>
 									<th class="col num">번호</th>
+									<c:if test="${boardTitleSeq ne 1}">
 									<th class="col sub_category">주제</th>
+									</c:if>
+									<c:if test="${boardTitleSeq eq 1}">
+									<th class="col sub_category">게시판</th>
+									</c:if>
 									<th class="col subject">제목</th>
 									<th class="col author">작성자</th>
 									<th class="col regdate">작성일</th>
@@ -862,7 +876,12 @@
 								<c:forEach var="list" items="${list}">
 								<tr class="search_board">
 									<td class="board_num">${list.boardSeq}</td>
+									<c:if test="${boardTitleSeq ne 1}">
 									<td class="board_sub_category">${list.boardSubTitle}</td>
+									</c:if>
+									<c:if test="${boardTitleSeq eq 1}">
+									<td class="board_sub_category">${list.boardTitle}</td>
+									</c:if>
 									<td class="board_subject">
 										<a href="javascript:;" onclick="showBoardContents(${list.boardSeq})">
 											<span class="subject">${list.boardSubject}</span>
@@ -872,7 +891,7 @@
 									<td class="board_author">
 										<a class="author" href='javascript:;'>${list.memberNickname}</a>
 										<div class="board_author_status">
-											<div><a href="/board/lists?num=${list.boardTitleSeq}&search=author&keyword=${list.memberNickname}">작성글 검색</a></div>
+											<div><a href="/board/lists?num=${boardTitleSeq}&search=author&keyword=${list.memberNickname}">작성글 검색</a></div>
 											<div><a href="#" onclick="alert('구현중인 기능입니다.')">프로필보기</a></div>
 											<div><a href="#" onclick="alert('구현중인 기능입니다.')">신고</a></div>
 										</div>
@@ -891,6 +910,7 @@
 						</table>
 					</div>
 					<!-- 게시판 버튼 -->
+					<c:if test="${boardTitleSeq ne 1}">
 					<div class="board_btns">
 						<div class="board_category">
 							<div class="category">
@@ -898,15 +918,14 @@
 								<button type="button" onclick="listSearchType('recommend')">화제글</button>
 							</div>
 						</div>
-						<c:if test="${boardTitleSeq ne 1}">
 						<div class="board_util_btn">
 							<button class="write_board" onclick="location.href='/board/write?num=${boardTitle.boardTitleSeq}'">
 								<i class="fa-solid fa-pencil"></i>
 								<span>글쓰기</span>
 							</button>
 						</div>
-						</c:if>
 					</div>
+					</c:if>
 					<!-- 페이징 -->
 					<div class="board_paging_box">
 						<div class="paging_box">

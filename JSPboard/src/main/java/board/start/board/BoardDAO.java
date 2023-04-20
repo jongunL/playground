@@ -24,7 +24,7 @@ public class BoardDAO {
 	//main화면의 카테고리별 최대 출력 글
 	int maxMainBoardColumn = 8;
 	//best게시물로 등록될 좋아요 개수
-	int minBestBoardThumbs = 0;
+	int minBestBoardThumbs = 10;
 	
 	public BoardDAO() {
 		conn = DBUtil.open();
@@ -65,9 +65,10 @@ public class BoardDAO {
 					+ "			) as board_comment_count, "
 					+ "			m.profile as member_profile, b.seq as board_seq, m.seq as member_seq,"
 					+ "			b.board_title_seq as board_title_seq, b.active as board_active,"
-					+ "			b.board_sub_title_seq as board_sub_title_seq "
+					+ "			b.board_sub_title_seq as board_sub_title_seq, bt.board_title as board_title "
 					+ "		from board b "
 					+ "		inner join member m on b.member_seq = m.seq "
+					+ "		inner join board_title bt on bt.seq = b.board_title_seq"
 					+ "		inner join board_sub_title bst on b.board_sub_title_seq = bst.seq "
 					+ "		left join board_manager bm on (b.member_seq = bm.member_seq and bm.board_title_seq = ?) "
 					+ "		where b.seq = ?";
@@ -90,6 +91,7 @@ public class BoardDAO {
 				result.setBoardViews(rs.getString("board_views"));
 				result.setBoardCommentCount(rs.getString("board_comment_count"));
 				result.setBoardTitleSeq(rs.getString("board_title_seq"));
+				result.setBoardTitle(rs.getString("board_title"));
 				result.setMemberProfile(rs.getString("member_profile"));
 				result.setBoardSeq(rs.getString("board_seq"));
 				result.setMemberSeq(rs.getString("member_seq"));
@@ -109,17 +111,18 @@ public class BoardDAO {
 			//board의 전체 개수를 구하기 위한 sql
 			String count = "select max(rn) as boardCount ";
 			//board의 결과를 얻기위한 sql, getBoardNum과 함께 사용
-			String getBoard = "select board_seq, board_title_seq, board_sub_title_seq, board_sub_title, member_seq, member_nickname, member_grade, board_subject, board_regdate, board_views, board_thumbs_up, comment_count, board_manager_seq ";
+			String getBoard = "select board_seq, board_title_seq, board_title, board_sub_title_seq, board_sub_title, member_seq, member_nickname, member_grade, board_subject, board_regdate, board_views, board_thumbs_up, comment_count, board_manager_seq ";
 			String sql =  "from ( "
-					+ "    select rownum rn, board_seq, board_title_seq, board_sub_title_seq, board_sub_title, member_seq, member_nickname, member_grade, board_subject, board_regdate, board_views, board_thumbs_up, comment_count, board_manager_seq "
+					+ "    select rownum rn, board_seq, board_title_seq, board_title, board_sub_title_seq, board_sub_title, member_seq, member_nickname, member_grade, board_subject, board_regdate, board_views, board_thumbs_up, comment_count, board_manager_seq "
 					+ "    from ( "
 					+ "        select b.seq as board_seq, b.board_title_seq as board_title_seq, b.board_sub_title_seq as board_sub_title_seq, "
 					+ "        bst.sub_title as board_sub_title , m.seq as member_seq, m.nickname as member_nickname, b.subject as board_subject, "
 					+ "        b.regdate as board_regdate, b.views as board_views, b.thumbs_up as board_thumbs_up, count(bc.seq) as comment_count, "
-					+ "		   m.grade as member_grade, bm.seq as board_manager_seq "
+					+ "		   m.grade as member_grade, bm.seq as board_manager_seq, bt.board_title as board_title "
 					+ "        from board b "
 					+ "        inner join member m on b.member_seq = m.seq "
 					+ "        inner join board_sub_title bst on b.board_sub_title_seq = bst.seq "
+					+ "		   inner join board_title bt on b.board_title_seq = bt.seq"		
 					+ "		   left join board_comment bc on b.seq = bc.board_seq and ( "
 					+ "			   bc.active = 'y' or bc.seq = bc.comment_group_seq and bc.seq in ( "
 					+ "   		   select comment_group_seq "
@@ -131,10 +134,14 @@ public class BoardDAO {
 					+ ")"
 					+ "		   left join board_manager bm on (m.seq = bm.member_seq and bm.board_title_seq = ? and bm.active = 'y') "
 					+ "	   where 1 = 1"
-					+ "			 and b.active = 'y' "
-					+ "			 and b.board_title_seq = ? ";
+					+ "			 and b.active = 'y' ";
+			//게시판 카테고리
+			if(!board_option.get("category").equals("1")) {
+				sql += String.format("and b.board_title_seq = %s ", board_option.get("category"));
+			}
+			
 			//글 유형
-			if(board_option.get("listType").equals("recommend")) {
+			if(board_option.get("listType").equals("recommend") || board_option.get("category").equals("1")) {
 				sql += String.format("and b.thumbs_up >= %d ", minBestBoardThumbs);
 			} 
 			//글 소제목
@@ -162,7 +169,7 @@ public class BoardDAO {
 					sql += String.format("and (m.active = 'y' and m.nickname like('%%%s%%')) ", keyword);			
 				}
 			}
-			sql	+="group by b.seq, b.board_title_seq, b.board_sub_title_seq, bst.sub_title, m.seq, m.nickname, m.grade, b.subject, b.regdate, b.views, b.thumbs_up, bm.seq "
+			sql	+="group by b.seq, b.board_title_seq, bt.board_title, b.board_sub_title_seq, bst.sub_title, m.seq, m.nickname, m.grade, b.subject, b.regdate, b.views, b.thumbs_up, bm.seq "
 				+ "        order by b.regdate desc "
 				+ "    ) "
 				+ ") ";
@@ -172,7 +179,6 @@ public class BoardDAO {
 			String totalBoardCount = null;
 			pstmt = conn.prepareStatement(count + sql);
 			pstmt.setString(1, board_option.get("category"));
-			pstmt.setString(2, board_option.get("category"));
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				totalBoardCount = rs.getString("boardCount");
@@ -180,9 +186,8 @@ public class BoardDAO {
 			
 			pstmt = conn.prepareStatement(getBoard + sql + getBoardNum);
 			pstmt.setString(1, board_option.get("category"));
-			pstmt.setString(2, board_option.get("category"));
-			pstmt.setString(3, board_option.get("begin"));
-			pstmt.setString(4, board_option.get("end"));
+			pstmt.setString(2, board_option.get("begin"));
+			pstmt.setString(3, board_option.get("end"));
 			rs = pstmt.executeQuery();
 			
 			while(rs.next()) {
@@ -200,6 +205,7 @@ public class BoardDAO {
 				boardDTO.setBoardThumbsUp(rs.getString("board_thumbs_up"));
 				boardDTO.setBoardCommentCount(rs.getString("comment_count"));
 				boardDTO.setBoardManagerSeq(rs.getString("board_manager_seq"));
+				boardDTO.setBoardTitle(rs.getString("board_title"));
 				boardDTO.setBoardCount(totalBoardCount);
 				result.add(boardDTO);
 			}
