@@ -13,7 +13,7 @@ import com.google.gson.Gson;
 import board.start.board.comment.BoardCommentDAO;
 import board.start.board.comment.BoardCommentDTO;
 import board.start.member.MemberAlarmDTO;
-import board.start.member.MemberAlramDAO;
+import board.start.member.MemberAlarmDAO;
 import board.start.member.MemberDAO;
 import board.start.util.Auth;
 
@@ -87,7 +87,7 @@ public class BoardCommentAdd extends HttpServlet {
 				memberReceiverSeq = boardAuthorSeq;
 			}
 			
-			MemberAlramDAO memberAlramDAO = new MemberAlramDAO();
+			MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
 			MemberAlarmDTO memberAlarmDTO = new MemberAlarmDTO();
 			memberAlarmDTO.setBoardSeq(boardSeq);
 			memberAlarmDTO.setMemberReceiverSeq(memberReceiverSeq);

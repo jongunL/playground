@@ -4,7 +4,7 @@ function get_comment() {
 	//댓글을 찾아오기 위한 정보
 	let board_num = $('#board_num').val();
 	let board_title_num = $('#board_title_num').val();
-	
+
 	//댓글 페이징, 정렬을 위한 데이터 가져오기
 	let comment_form = $('.board_comment_data');
 	let page = comment_form.find('.comment_page');
@@ -483,16 +483,16 @@ function emoji_btn() {
 
 $(() => {
 	//현재 url확인
-	let cureentURI = new URL(window.location.href);
+	let currentURI = new URL(window.location.href);
 	
 	//게시판 보기일때 댓글 가져오기
-	if(cureentURI.pathname == '/board/view') {
+	if(currentURI.pathname == '/board/view') {
 		get_comment();
 	}
 	
 	//현재 보고있는 글 표시하기
 	$('.board_list').find('.board_num').each(function() {
-		if($(this).text() == cureentURI.searchParams.get('board')) {
+		if($(this).text() == currentURI.searchParams.get('board')) {
 			$(this).text('');
 			$(this).append('<i class="fa-solid fa-angle-right"></i>');
 			$(this).closest('.search_board').addClass('active');

@@ -479,6 +479,71 @@ public class BoardDAO {
 		return result;
 	}
 	
+	public List<BoardTitleDTO> getBoardTitleList() {
+		List<BoardTitleDTO> result = null;
+		
+		try {
+			String sql = 
+					"SELECT bt.seq as board_title_seq,bt.board_img as board_title_img, bt.board_title as board_title, bt.discription as board_discription, COUNT(bs.seq) as board_subscriber_count "
+							+ "FROM board_title bt "
+							+ "LEFT JOIN board_subscriber bs on bt.seq = bs.board_title_seq "
+							+ "WHERE bt.seq != 1 "
+							+ "GROUP BY bt.seq, bt.board_title, bt.discription, bt.board_img "
+							+ "ORDER BY board_subscriber_count DESC";
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			result = new ArrayList<>();
+			while(rs.next()) {
+				BoardTitleDTO boardTitleDTO = new BoardTitleDTO();
+				boardTitleDTO.setBoardTitle(rs.getString("board_title"));
+				boardTitleDTO.setBoardTitleSeq(rs.getString("board_title_seq"));
+				boardTitleDTO.setBoardTitleImg(rs.getString("board_title_img"));
+				boardTitleDTO.setBoardTitleDescription(rs.getString("board_discription"));
+				boardTitleDTO.setBoardTitleSubscriberCount(rs.getInt("board_subscriber_count"));
+				result.add(boardTitleDTO);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	public List<BoardTitleDTO> getBoardSubscribedTitleList(String memberSeq) {
+		List<BoardTitleDTO> result = null;
+		
+		try {
+			String sql = 
+					"SELECT bt.seq as board_title_seq, bt.board_img as board_title_img, bt.board_title as board_title, bt.discription as board_discription, COUNT(bs.seq) as board_subscriber_count, bs.regdate as regdate "
+							+ "FROM board_title bt "
+							+ "LEFT JOIN board_subscriber bs on bt.seq = bs.board_title_seq "
+							+ "WHERE bs.member_seq = ? "
+							+ "GROUP BY bt.seq, bt.board_title, bt.discription, bt.board_img, bs.regdate "
+							+ "ORDER BY board_subscriber_count DESC";
+			
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberSeq);
+			rs= pstmt.executeQuery();
+			result = new ArrayList<>();
+			while(rs.next()) {
+				BoardTitleDTO boardTitleDTO = new BoardTitleDTO();
+				boardTitleDTO.setBoardTitle(rs.getString("board_title"));
+				boardTitleDTO.setBoardTitleSeq(rs.getString("board_title_seq"));
+				boardTitleDTO.setBoardTitleImg(rs.getString("board_title_img"));
+				boardTitleDTO.setBoardTitleDescription(rs.getString("board_discription"));
+				boardTitleDTO.setBoardTitleSubscriberCount(rs.getInt("board_subscriber_count"));
+				boardTitleDTO.setRegdate(rs.getString("regdate"));
+				result.add(boardTitleDTO);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	
+	
 	//main화면에 출력하는 카테고리 보드리스트
 	//TODO 짜다보니 보기 복잡해졌는데, 나중에 한번 수정하기
 	public ArrayList<MainBoardDTO> getMainBoardList() {
@@ -491,7 +556,7 @@ public class BoardDAO {
 				    + "        ( "
 				    + "        SELECT seq, subject, regdate "
 				    + "        FROM board "
-				    + "        WHERE thumbs_up >= ? "
+				    + "        WHERE thumbs_up >= ? and active = 'y' "
 				    + "        ) best "
 				    + "    LEFT JOIN board_comment bc ON best.seq = bc.board_seq and ("
 				    + "			    bc.active = 'y' "
@@ -533,6 +598,7 @@ public class BoardDAO {
 				    + "                group by comment_group_seq having count(comment_group_seq) > 0 "
 				    + "              )"
 				    + "	   )"
+				    + "	   WHERE b.active = 'y' "
 				    + "    GROUP BY tlist.seq, tlist.board_title, b.seq, b.subject, b.regdate "
 				    + "    UNION ALL "
 				    + "    SELECT bt.seq as title_seq, bt.board_title as title, bbl.board_seq as board_seq, bbl.subject as subject, bbl.regdate as regdate, bbl.board_comment_num as board_comment_num, "

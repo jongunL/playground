@@ -9,7 +9,10 @@ import lombok.ToString;
 @ToString
 public class MemberAlarmDTO {
 	private String memberAlarmSeq;
+	private String memberNickname;
+	private String memberProfile;
 	private String boardSeq;
+	private String boardTitleSeq;
 	private String CommentSeq;
 	private String memberReceiverSeq;
 	private String memberSenderSeq;

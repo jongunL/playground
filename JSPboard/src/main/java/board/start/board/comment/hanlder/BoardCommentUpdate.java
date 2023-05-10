@@ -44,6 +44,9 @@ public class BoardCommentUpdate extends HttpServlet {
 			}
 		}
 
+		//TODO 댓글 수정시 기존 알람 수정내용 반영할지 결정하기
+		
+
 		resp.setCharacterEncoding("UTF-8");
 		resp.setContentType("application/json");
 		resp.getWriter().write(new Gson().toJson(result));

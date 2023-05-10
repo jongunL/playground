@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BoardTitleDTO {
+	private String regdate;
 	private String boardTitleSeq;
 	private String boardTitle;
 	private String boardTitleImg;

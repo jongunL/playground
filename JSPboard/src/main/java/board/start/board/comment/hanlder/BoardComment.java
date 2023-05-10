@@ -53,13 +53,14 @@ public class BoardComment extends HttpServlet {
 		} else {
 			commentSortType = "registrationDate";
 		}
-		
+				
 		//현재 유저가 보려고 하는 페이지
 		if(req.getParameter("page") != null && req.getParameter("page") != "") {
 			nowPage = Integer.parseInt(req.getParameter("page"));
 		} else {
 			nowPage = 1;
 		}
+		
 		//화면에 출력할 댓글범위
 		begin = ((nowPage-1)*pageSize) + 1;
 		end = begin + pageSize - 1;
@@ -107,4 +108,5 @@ public class BoardComment extends HttpServlet {
 		PrintWriter writer = resp.getWriter();
 		writer.write(jsonObject.toString());
 	}
+
 }

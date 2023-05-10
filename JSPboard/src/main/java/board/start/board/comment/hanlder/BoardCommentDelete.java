@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 import board.start.board.comment.BoardCommentDAO;
 import board.start.board.comment.BoardCommentDTO;
 import board.start.member.MemberAlarmDTO;
-import board.start.member.MemberAlramDAO;
+import board.start.member.MemberAlarmDAO;
 import board.start.util.Auth;
 
 @WebServlet("/board/comment/delete")
@@ -55,7 +55,7 @@ public class BoardCommentDelete extends HttpServlet {
 		//댓글을 삭제했으면, 보낸 알람도 함께 삭제한다.
 		if(result == true) {
 			result = false;
-			MemberAlramDAO memberAlramDAO = new MemberAlramDAO();
+			MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
 			result = memberAlramDAO.deleteMemberAlramByCommentSeq(memberSeq);
 			
 		}

@@ -114,6 +114,69 @@ public class BoardCommentDAO {
 		return result;
 	}
 	
+	public long getCommentRownum(BoardCommentDTO boardCommentDTO) {
+		long result = 0;
+		
+		try {
+			String boardTitleSeq = boardCommentDTO.getBoardTitleSeq();
+			String boardSeq = boardCommentDTO.getBoardSeq();
+			String cmt = boardCommentDTO.getBoardCommentSeq();
+			String sortOption = "asc";
+			
+			String sql = "select rn "
+					+ "from( "
+					+ "    select rownum as rn, rs.* "
+					+ "    from( "
+					+ "        select "
+					+ "            m.seq as member_seq, m.nickname as member_nickname, m.profile as member_profile, "
+					+ "            m.grade as member_grade, bc.board_auth_seq as board_auth_seq, \r\n"
+					+ "            ( "
+					+ "                select seq "
+					+ "                from board_manager "
+					+ "                where member_seq = m.seq and board_title_seq = ?"
+					+ "            ) as member_manager, "
+					+ "            bc.seq as board_comment_seq, bc.comment_group_seq as board_comment_group_seq, "
+					+ "            bc.group_order_seq as board_comment_group_order_seq, bc.board_comment as board_comment, "
+					+ "            bc.regdate as board_comment_regdate, bc.last_modified as board_comment_last_modified, "
+					+ "            bc.thumbs_up as board_comment_thumbs_up, bc.thumbs_down as board_comment_thumbs_down, "
+					+ "            bc.active as board_comment_active "
+					+ "        from ( "
+					+ "            select * "
+					+ "            from board_comment "
+					+ "            where board_seq = ? "
+					+ "            and ( "
+					+ "                     board_comment.active = 'y' "
+					+ "                     or board_comment.seq = board_comment.comment_group_seq "
+					+ "                     and board_comment.seq in ( "
+					+ "                        select comment_group_seq "
+					+ "                        from board_comment "
+					+ "                        where active = 'y' "
+					+ "                        group by comment_group_seq having count(comment_group_seq) > 0 "
+					+ "                      ) "
+					+ "                  ) "
+					+ "        ) bc "
+					+ "        inner join member m on bc.comment_auth_seq = m.seq "
+					+ "        order by board_comment_group_seq "+sortOption+", board_comment_group_order_seq "
+					+ "    ) rs "
+					+ ")"
+					+ "where board_comment_seq = ?";
+			
+			if(boardTitleSeq != null && boardSeq != null && cmt != null) {
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, boardTitleSeq);
+				pstmt.setString(2, boardSeq);
+				pstmt.setString(3, cmt);
+				rs = pstmt.executeQuery();
+				if(rs.next()) {
+					result = rs.getLong("rn");
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 	public String saveBoardComment(BoardCommentDTO boardCommentDTO) {
 		String result = null;
 		try {

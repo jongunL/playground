@@ -50,13 +50,41 @@ header #header_logo_img {
 	align-items: center;
 }
 
-#header_sub_menu {
+#header_sub_menu,
+#header_alarm_sub_menu {
 	position: absolute;
 	border: 1px solid black;
 	background-color: var(--bgcr-white);
-	margin-right: 32px;
 	top: 100%;
 	right: 0;
+	border-radius: 5px;
+}
+
+#header_alarm_sub_menu {
+	max-height: 30rem;
+	width: 30rem;
+	overflow-y: scroll;
+}
+
+#header_alarm_sub_menu > .alarm > .no_alarm {
+	height: 15rem;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+#alarm_all_ck {
+	cursor: pointer;
+}
+
+#alarm_content {
+	flex: 1;
+}
+
+#header_sub_menu {
+	white-space: nowrap;
 }
 
 #header_menu > li {
@@ -65,17 +93,40 @@ header #header_logo_img {
 
 #header_menu > li > a,
 #header_menu > li > span,
-#header_sub_menu > li > a {
+#header_sub_menu > li > a,
+#header_alarm_sub_menu > li > a {
 	display: block;
 	padding: 8px 12px;
 }
-#header_sub_menu > li > a {
+
+#header_sub_menu > li > a,
+#header_alarm_sub_menu > li > a {
 	text-align: left;
 }
 
 #header_menu > li:hover,
-#header_sub_menu > li:hover {
+#header_sub_menu > li:hover,
+#header_alarm_sub_menu > li:hover {
 	background-color: var(--bgcr-middle-dark);
+}
+
+#alarm_sub_menu_h {
+	display: flex;
+	justify-content: space-between;
+	border-bottom: 1px solid #ccc;
+}
+
+#header_alarm_sub_menu > li {
+	padding: 0.75rem 1rem;
+}
+
+#alarm_sub_menu_h:hover {
+	background-color: transparent !important;
+}
+
+.alarm > a {
+	display: flex;
+	cursor: pointer;
 }
 
 #header_menu > li:hover {
@@ -83,9 +134,50 @@ header #header_logo_img {
 }
 
 #header_menu > li:hover > a,
-#header_sub_menu > li:hover > a {
+#header_sub_menu > li:hover > a,
+#header_alarm_sub_menu > .alarm:hover > div > a > .regdate,
+#header_alarm_sub_menu > .alarm:hover > div > a > .contents,
+#header_alarm_sub_menu > .alarm:hover > .remove_btn,
+#header_alarm_sub_menu > .alarm:hover > .no_alarm {
 	color: var(--color-white);
 }
+
+#header_alarm_sub_menu > .alarm {
+	display: flex;
+}
+
+#header_alarm_sub_menu > .alarm > a {
+	padding: 0;
+	font-size: 0;
+	line-height: 0;
+	text-decoration: none;
+}
+
+#header_alarm_sub_menu > .alarm > a > img {
+	width: 3.5rem;
+	height: 3.5rem;
+	margin-right: 1rem;
+	border-radius: 50%;
+}
+
+#header_alarm_sub_menu > .alarm > div {
+	display: flex;
+	flex-direction: column;
+}
+
+#header_alarm_sub_menu > .alarm > div > a > .contents {
+	margin-bottom: 0.6rem;
+}
+
+#header_alarm_sub_menu > .alarm > div > a > .regdate {
+	font-size: 0.85rem;
+	color: var(--color-hr-dark);
+}
+
+#header_alarm_sub_menu > .alarm > .remove_btn {
+	cursor: pointer;
+}
+
 
 /* header 로그인한 경우 추가 메뉴 */
 #header_menu > #header_profile_img:hover,
@@ -133,9 +225,14 @@ header #header_logo_img {
 	position: relative;
 }
 
-#header_menu > #header_alarm:after {
-	display: block;
+#header_alarm_counter {
+	padding: 0 !important;
+}
+
+#header_menu > li > #header_alarm_counter {
+	display: none;
 	position: absolute;
+	font-size: 0;
 	top: 0.1rem;
 	right: 0.1rem;
 	content: "";
@@ -144,7 +241,6 @@ header #header_logo_img {
 	border-radius: 50%;
 	background-color: red;
 }
-
 
 #header_menu .mobile.change {
 	display: none;
@@ -280,6 +376,14 @@ footer p > span:last-child::after {
 	.board_article {
 		width: 100%;
 	}
+	
+	.board_list > .board.row {
+		flex: 1;
+	}
+	
+	.board_list > .board.row > .board.column {
+		width: 100%;
+	}
 }
 
 @media screen and (max-width: 768px) {
@@ -355,28 +459,32 @@ footer p > span:last-child::after {
 		align-items: center;
 	}
 	
-	#header_menu #header_alarm {
-		margin-top: 8px;
-	}
-	
-	#header_menu .desktop.change {
+	#header_alarm_sub_menu {
 		display: none;
 	}
 	
-	#header_menu > #header_alarm:after {
-		content: "+9";
+	#header_menu #header_alarm {
+		margin-top: 8px;
+	}
+
+	#header_menu .desktop.change {
+		display: none !important;
+	}
+	
+	#header_menu > li > #header_alarm_counter {
 		color: white;
 		font-size: 16px;
 		right: 5%;
 		top: 50%;
 		transform: translateY(-50%);
+		padding: 25px;
 		border-radius: 3px;
 		width: 25px;
 		height: 20px;
 	}
 	
 	#header_menu > #header_alarm:hover {
-		background-color: var(--bgcr-middle-dark);
+		background-color: var(--bgcr-middle-dark) !important;
 		border-radius: 4px;
 	}
 	

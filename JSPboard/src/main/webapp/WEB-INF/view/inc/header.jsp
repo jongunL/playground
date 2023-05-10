@@ -6,25 +6,33 @@
 			<img id="header_logo_img" alt="main logo" src="/asset/images/logo.png" draggable="false">
 			<span>PlayGround!</span>
 		</a>
-		<a href="#" class="navbar_togleBtn">
+		<a href="javascript:;" class="navbar_togleBtn">
 			<i class="fas fa-bars"></i>
 		</a>
 	</div>
 	<div>
 	</div>
 	<ul id="header_menu">
-		<li><a href="/searchCh">채널검색</a></li>
+		<li><a href="/board/search">채널검색</a></li>
 		<!-- 로그인 되어있는 경우 -->
 		<c:if test="${((not empty cookie.auth.value) and (cookie.auto.value eq 'true')) or (not empty sessionScope.auth)}">
-		<li class="mobile change"><a href="#" onclick="logout()">로그아웃</a></li>
-		<li class="mobile change"><a href="#">구독채널</a></li>
-		<li class="mobile change"><a href="#">마이페이지</a></li>
+		<li class="mobile change"><a href="javascript:;" onclick="logout()">로그아웃</a></li>
+		<li class="mobile change"><a href="/board/subscribed">구독채널</a></li>
+		<li class="mobile change"><a href="/member/profile">마이페이지</a></li>
 		<li id="header_alarm">
-			<a class="desktop change" href="#"><i class="fa-regular fa-bell"></i></a>
-			<a class="mobile change" href="#">알림</a>
+			<a class="desktop change" href="javascript:;"><i class="fa-regular fa-bell"></i></a>
+			<a class="mobile change" href="javascript:;">알림</a>
+			<span id="header_alarm_counter"></span>
+			<ul class="sub_menu" id="header_alarm_sub_menu">
+				<li id="alarm_sub_menu_h">
+					<div>알림</div>
+					<div id="alarm_all_ck">알림전체삭제</div>
+				</li>
+				<!-- 태그 동적생성 -->
+			</ul>
 		</li>
 		<li id="header_profile_img">
-			<a href="#"><img src="/asset/images/profile/default01.jpg"></a>
+			<a href="javascript:;"><img src="/asset/images/profile/default01.jpg"></a>
 			<span class="mobile change" id="header_profile_intro">
 				<span>닉네임</span>
 				<span>아이디</span>
@@ -32,12 +40,12 @@
 			<span id="menu_toggle_btn" class="desktop change">
 				<i class="fa-solid fa-angle-down"></i>
 			</span>
+			<ul class="desktop change sub_menu" id="header_sub_menu">
+				<li><a href="/member/profile">마이페이지</a></li>
+				<li><a href="/board/subscribed">구독채널</a></li>
+				<li><a href="javascript:;" onclick="logout()">로그아웃</a></li>
+			</ul>	
 		</li>
-		<ul class="desktop change sub_menu" id="header_sub_menu">
-			<li><a href="#">마이페이지</a></li>
-			<li><a href="#">구독채널</a></li>
-			<li><a href="#" onclick="logout()">로그아웃</a></li>
-		</ul>		
 		</c:if>
 		<!-- 로그인 안되어있는 경우 -->
 		<c:if test="${((empty cookie.auth.value) or (cookie.auto.value ne 'true')) and (empty sessionScope.auth)}">
