@@ -114,7 +114,7 @@
 		
 		
 		function pwd_validation_ck(pwd) {
-			const regex = /^[a-zA-Z0-9가-힣!@#$%^&*()_+|<>?]{6,16}$/;
+			const regex = /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*()_+|<>?]{6,16}$/;
 
 			if(regex.test(pwd)) {
 				$('#pwd1_msg').text('사용가능한 비밀번호입니다').css('color', 'green');
@@ -151,7 +151,7 @@
 		});
 		/** nickname 유효성검사 */
 		function nickname_validation_ck(nickname) {
-			const regex = /^[a-zA-Z0-9가-힣]{1,10}$/;
+			const regex = /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ]{1,10}$/;
 			if(regex.test(nickname)) {
 				return true;
 			} else {

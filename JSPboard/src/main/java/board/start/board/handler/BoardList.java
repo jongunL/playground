@@ -18,6 +18,7 @@ import board.start.board.BoardDAO;
 import board.start.board.BoardDTO;
 import board.start.board.BoardSubTitleDTO;
 import board.start.board.BoardTitleDTO;
+import board.start.board.comment.BoardCommentDAO;
 import board.start.board.comment.BoardCommentDTO;
 import board.start.util.Auth;
 import board.start.util.VisitCategory;
@@ -64,6 +65,7 @@ public class BoardList extends HttpServlet {
 		String requestURI = req.getRequestURI();
 		BoardDTO board = null;
 		String boardSeq = null;
+		int cmtNowPage = 1;
 		if(requestURI.equals("/board/view")) {
 			boardSeq = req.getParameter("board");
 			if(category != null && boardSeq != null) {
@@ -85,8 +87,14 @@ public class BoardList extends HttpServlet {
 			}
 		}
 		//가져온 board데이터 후처리
+		String cmt = req.getParameter("cmt");
 		if(board != null) {
 			board.setBoardSubject(board.getBoardSubject().replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+			
+			//만약 댓글 검색을 통한 유입인경우
+			if(cmt != null) {
+				cmtNowPage = getNowCmtPage(category, boardSeq, cmt);
+			}
 		}
 		
 		//게시판 소분류 가져오기
@@ -192,7 +200,7 @@ public class BoardList extends HttpServlet {
 		int blockSize = 10;
 		//블럭의 시작이 몇번인지
 		int startBlock = ((nowPage - 1)/blockSize)*blockSize+1;
-		
+				
 		//검색옵션과 board list 전달
 		req.setAttribute("boardSeq", boardSeq);
 		req.setAttribute("boardTitleSeq", category);
@@ -212,8 +220,23 @@ public class BoardList extends HttpServlet {
 		req.setAttribute("blockSize", blockSize);
 		req.setAttribute("startBlock", startBlock);
 		
+		//댓글유입일 경우 시작이 어디인지		
+		req.setAttribute("cmtNowPage", cmtNowPage);
+		req.setAttribute("cmtNum", cmt);
+		
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/WEB-INF/view/board/board.jsp");
 		dispatcher.forward(req, resp);
+	}
+	
+	private int getNowCmtPage(String boardTitleSeq, String boardSeq, String cmt) {
+		BoardCommentDAO boardCommentDAO = new BoardCommentDAO();
+		BoardCommentDTO boardCommentDTO = new BoardCommentDTO();
+		boardCommentDTO.setBoardTitleSeq(boardTitleSeq);
+		boardCommentDTO.setBoardSeq(boardSeq);
+		boardCommentDTO.setBoardCommentSeq(cmt);
+		long rownum = boardCommentDAO.getCommentRownum(boardCommentDTO);
+		int nowCmtPage = (int)Math.ceil((double)rownum/50);
+		return nowCmtPage < 1 ? 1 : nowCmtPage;
 	}
 	
 }

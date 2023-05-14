@@ -2,6 +2,8 @@ package board.start.member.util;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.StringJoiner;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -22,7 +24,7 @@ public class CheckAlarm extends HttpServlet {
 		req.setCharacterEncoding("UTF-8");
 		Map<String, String> auth = Auth.getAuth(req);
 		String memberSeq = null;
-		String notificationSeq = req.getParameter("notificationSeq");
+		String[] notificationSeq = req.getParameterValues("notificationSeq[]");
 		
 		boolean result = false;
 		if(auth != null) {
@@ -31,14 +33,14 @@ public class CheckAlarm extends HttpServlet {
 				memberSeq = auth.get("seq");
 			}
 		}
-		
+
 		if(memberSeq != null && req.getRequestURI().equals("/member/checkAlarm")) {
 			result = checkAlarm(memberSeq, notificationSeq);
 		} else if(memberSeq != null && req.getRequestURI().equals("/member/checkAllAlarm")) {
 			result = checkAllAlarm(memberSeq);
 		} else {
 			result = false;
-		}	
+		}
 		
 		resp.setCharacterEncoding("UTF-8");
 		resp.setContentType("application/json");
@@ -53,11 +55,11 @@ public class CheckAlarm extends HttpServlet {
 		return memberAlarmDAO.checkAllAlarm(memberAlarmDTO);
 	}
 	
-	private boolean checkAlarm(String memberSeq, String notificationSeq) {
+	private boolean checkAlarm(String memberSeq, String[] notificationSeq) {
 		if(notificationSeq != null) {
 			MemberAlarmDAO memberAlarmDAO = new MemberAlarmDAO();
 			MemberAlarmDTO memberAlarmDTO = new MemberAlarmDTO();
-			memberAlarmDTO.setMemberAlarmSeq(notificationSeq);
+			memberAlarmDTO.setMemberAlarmSeq(String.join(",", notificationSeq));
 			memberAlarmDTO.setMemberReceiverSeq(memberSeq);
 			return memberAlarmDAO.checkAlarm(memberAlarmDTO);	
 		} else {

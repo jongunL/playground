@@ -780,7 +780,8 @@
 							<div class="board_comment_container">
 								<form class="board_comment_data" name="bcd">
 									<input type="hidden" class="comment_total_page" name="total_page">
-									<input type="hidden" class="comment_page" name="page">
+									<input type="hidden" class="comment_page" name="page" value="${cmtNowPage}">
+									<input type="hidden" class="comment_num" name="cmt_num" value="${cmtNum}">
 									<input type="hidden" class="comment_sort" name="sort">
 									<input type="hidden" class="comment_total_count" name="count">
 									<input type="hidden" class="comment_page_size" name="size">

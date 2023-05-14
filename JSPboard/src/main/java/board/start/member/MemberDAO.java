@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import board.start.util.DBUtil;
 
@@ -209,5 +212,60 @@ public class MemberDAO {
 		
 		return result;
 	}//duplicationCheckByNickname
+
+	public MemberDTO getMemberProfileBySeq(String memberSeq) {
+		MemberDTO result = null;
+		try {
+			String sql = "select nickname, profile, regdate "
+					+ "from member "
+					+ "where seq = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberSeq);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = new MemberDTO();
+				result.setNickname(rs.getString("nickname"));
+				result.setProfile(rs.getString("profile"));
+				result.setRegdate(rs.getString("regdate"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+
+	public boolean updateMemberProfile(Map<String, String> option) {
+		boolean result = false;
+		
+		try {
+			String sql = "update member set ";
+			List<String> columnsToUpdate = new ArrayList<>();
+			
+			if(Boolean.valueOf(option.get("nicknameChage"))) {
+				columnsToUpdate.add(String.format("nickname = '%s'", option.get("nickname")));
+			}
+			if(Boolean.valueOf(option.get("imgChange"))) {
+				columnsToUpdate.add(String.format("profile = '%s'", option.get("filename")));
+			}
+			
+			sql += String.join(", ", columnsToUpdate);
+			sql += " where seq = ?";
+
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, option.get("memberSeq"));
+			
+			if(pstmt.executeUpdate() == 1) {
+				result = true;
+			} else {
+				throw new SQLException("업데이트 실패");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
 
 }

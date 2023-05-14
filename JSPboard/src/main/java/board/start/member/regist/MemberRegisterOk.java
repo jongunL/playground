@@ -67,12 +67,12 @@ public class MemberRegisterOk extends HttpServlet {
 		return matcher.find();
 	}
 	private boolean pwdValidationCk(String pwd) {
-		pattern = Pattern.compile("^[a-zA-Z0-9가-힣!@#$%^&*()_+|<>?]{6,16}$");
+		pattern = Pattern.compile("^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*()_+|<>?]{6,16}$");
 		matcher = pattern.matcher(pwd);		
 		return matcher.find();
 	}
 	private boolean nicknameValidationCk(String nickname) {
-		pattern = Pattern.compile("^[a-zA-Z0-9가-힣]{1,10}$");
+		pattern = Pattern.compile("^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ]{1,10}$");
 		matcher = pattern.matcher(nickname);		
 		return matcher.find();
 	}

@@ -32,10 +32,10 @@
 			</ul>
 		</li>
 		<li id="header_profile_img">
-			<a href="javascript:;"><img src="/asset/images/profile/default01.jpg"></a>
+			<a href="javascript:;"><img id="header_profile_img_show" src="/asset/images/profile/default01.jpg"></a>
 			<span class="mobile change" id="header_profile_intro">
-				<span>닉네임</span>
-				<span>아이디</span>
+				<span id="nickname">닉네임</span>
+				<span id="regdate">가입일자</span>
 			</span>
 			<span id="menu_toggle_btn" class="desktop change">
 				<i class="fa-solid fa-angle-down"></i>

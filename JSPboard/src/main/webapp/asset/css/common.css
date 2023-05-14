@@ -456,7 +456,11 @@ footer p > span:last-child::after {
 		display: flex;
 		flex-direction: column;
 		justify-content: space-around;
-		align-items: center;
+		align-items: flex-start;
+	}
+	
+	#header_profile_intro > span {
+		text-align: left;
 	}
 	
 	#header_alarm_sub_menu {

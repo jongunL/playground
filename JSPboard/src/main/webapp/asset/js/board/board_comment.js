@@ -13,45 +13,50 @@ function get_comment() {
 	let total_count = comment_form.find('.comment_total_count');
 	let page_size = comment_form.find('.comment_page_size');
 	
-	$.ajax({
-		url: '/board/comment',
-		type: 'GET',
-		data: {
-			boardSeq : board_num,
-			boardTitleSeq : board_title_num,
-			page : page.val(),
-			sort : sort.val()
-		},
-		dataType: 'json',
-		success: function(result) {				
-			if(result != null) {
-				//받아온 데이터 초기화
-				total_page.val(result.totalPage);
-				page.val(result.nowPage);
-				sort.val(result.sort);
-				total_count.val(result.totalCount);
-				page_size.val(result.pageSize);
-				
-				//태그값 동적 변경
-				$('#comment_page').text(page.val());
-				$('#comment_total_page').text(total_page.val());
-				
-				//기존에 존재하는 댓글 삭제
-				$('.comment_list').empty();
-				
-				//태그 동적 추가
-				comment_list = result.commentList;
-				comment_list.forEach(function(value) {
-					put_comment_html(value);
-				});
-			} else {
-				alert('댓글 목록을 가져오는데 실패했습니다.');
+	return new Promise((resolve, reject) => {
+		$.ajax({
+			url: '/board/comment',
+			type: 'GET',
+			data: {
+				boardSeq : board_num,
+				boardTitleSeq : board_title_num,
+				page : page.val(),
+				sort : sort.val()
+			},
+			dataType: 'json',
+			success: function(result) {				
+				if(result != null) {
+					//받아온 데이터 초기화
+					total_page.val(result.totalPage);
+					page.val(result.nowPage);
+					sort.val(result.sort);
+					total_count.val(result.totalCount);
+					page_size.val(result.pageSize);
+					
+					//태그값 동적 변경
+					$('#comment_page').text(page.val());
+					$('#comment_total_page').text(total_page.val());
+					
+					//기존에 존재하는 댓글 삭제
+					$('.comment_list').empty();
+					
+					//태그 동적 추가
+					comment_list = result.commentList;
+					comment_list.forEach(function(value) {
+						put_comment_html(value);
+					});
+					resolve();
+				} else {
+					alert('댓글 목록을 가져오는데 실패했습니다.');
+				}
+			},
+			error: function(a, b, c) {
+				console.log(a, b, c);
+				reject(error);
 			}
-		},
-		error: function(a, b, c) {
-			console.log(a, b, c);
-		}
+		});
 	});
+	
 }
 
 
@@ -276,7 +281,7 @@ function put_comment_html(comment_data) {
 						? '<div><a href="javascript:;" class="reply_update" data-reply-no ="'+comment_data.boardCommentSeq+'">수정</a></div>'
 						+ '<div><a href="javascript:;" class="reply_delete" data-reply-no ="'+comment_data.boardCommentSeq+'">삭제</a></div>' : '';
 						
-		html += '<div class="cmt row '+ reply_class +'" data-root-no ="'+comment_data.boardCommentGroupSeq+'" data-order-no ="'+comment_data.boardCommentGroupOrderSeq+'" data-no ="'+comment_data.boardCommentSeq+'">';
+		html += '<div id="cmt_'+comment_data.boardCommentSeq+'" class="cmt row '+ reply_class +'" data-root-no ="'+comment_data.boardCommentGroupSeq+'" data-order-no ="'+comment_data.boardCommentGroupOrderSeq+'" data-no ="'+comment_data.boardCommentSeq+'">';
 		html += '	<div class="board_comment_area">';
 		html += '		<div class="comment_author_profile">';
 		html += '			<img src="/asset/images/profile/'+ comment_data.memberProfile +'">';
@@ -480,14 +485,36 @@ function emoji_btn() {
 	alert('준비중인 기능입니다.');
 }
 
-
 $(() => {
 	//현재 url확인
 	let currentURI = new URL(window.location.href);
 	
 	//게시판 보기일때 댓글 가져오기
 	if(currentURI.pathname == '/board/view') {
-		get_comment();
+		get_comment()
+			.then(() => {
+				let cmt = currentURI.searchParams.get('cmt');
+				if(cmt != null) {
+					console.log(cmt);
+					let target = $('.comment_list > .cmt.row[data-no="'+cmt+'"]')[0];
+					if(target) {
+						//화면이동
+						const top = target.getBoundingClientRect().top + window.pageYOffset;
+  						scrollTo({ top: top });
+						
+						//배경색변경
+						const originalBackgroundColor = target.style.backgroundColor;
+						
+						target.style.transition = 'background-color 0.3s';
+						target.style.backgroundColor = '#E0FFFF';
+						
+						//원상복귀
+						setTimeout(function() {
+						    target.style.backgroundColor = originalBackgroundColor;
+						}, 1000);
+					}
+				}
+			});
 	}
 	
 	//현재 보고있는 글 표시하기

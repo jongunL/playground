@@ -60,9 +60,9 @@ function get_alarm_list() {
 		type: 'POST',
 		dataType: 'JSON',
 		url: '/member/getAlarm',
-		success: function(result) {
-			if(result.length > 0) {
-				result.forEach(function(data) {
+		success: function(result) {		
+			if(result.alarmList.length > 0) {
+				result.alarmList.forEach(function(data) {
 					create_element(data);
 				});
 			} else {
@@ -79,7 +79,7 @@ function create_element(data) {
 	console.log(data);
 	let html = '';
 	html += '<li class="alarm" data-n-num='+data.memberAlarmSeq+'>';
-	html += '	<a href="/board/view?num='+data.boardTitleSeq+'&board='+data.boardSeq+'">';
+	html += '	<a href="/board/view?num='+data.boardTitleSeq+'&board='+data.boardSeq+'&cmt='+data.CommentSeq+'">';
 	html += '		<img src="/asset/images/profile/'+data.memberProfile+'">';
 	html += '	</a>';
 	html += '	<div id="alarm_content">';
@@ -140,6 +140,9 @@ function check_alarm_empty() {
 
 //알림 x버튼 클릭시
 function check_alarm(num, element) {
+	if(!(num instanceof Array)) {
+		num = [num];
+	}
 	
 	$.ajax({
 		type: 'POST',
@@ -184,8 +187,11 @@ $('#header_alarm_sub_menu').on('click', (e) => {
 });
 
 
-//알람 유무체크
 $(() => {
+	//로그인시 사용자 정보 가져옴
+	get_member_profile();
+	
+	//알람 유무체크
 	$.ajax({
 		type: 'POST',
 		dataType: 'JSON',
@@ -204,6 +210,24 @@ $(() => {
 		}
 	});
 });
+
+function get_member_profile() {
+	$.ajax({
+		type: 'POST',
+		dataType: 'JSON',
+		url : '/member/getProfile',
+		success: function(result) {
+			if(result != null && result != undefined) {
+				$('#header_profile_img_show').attr('src', '/asset/images/profile/'+result.profile);
+				$('#header_profile_intro > #nickname').text('닉네임 : ' + result.nickname);
+				$('#header_profile_intro > #regdate').text('가입일자 : ' + result.regdate);
+			}
+		},
+		error: function(a, b, c) {
+			console.log(a, b, c);
+		}
+	});
+}
 
 //로그아웃 버튼 클릭시
 function logout() {	

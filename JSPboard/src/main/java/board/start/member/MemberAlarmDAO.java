@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import board.start.util.DBUtil;
 
@@ -69,24 +70,41 @@ public class MemberAlarmDAO {
 		
 	}
 
-	public List<MemberAlarmDTO> getAlarmList(String memberSeq) {
+	public List<MemberAlarmDTO> getAlarmList(Map<String, String> option) {
 		List<MemberAlarmDTO> result = null;
 		try {
-			String sql = "select "
-					+ "    m.nickname as member_nickname, m.profile as member_profile, "
-					+ "    n.created as alaram_created, n.message as message, "
-					+ "    n.board_seq as board_seq, n.comment_seq as comment_seq, "
-					+ "	   n.checked as alarm_checked, n.seq as memberAlarmSeq, "
-					+ "    b.board_title_seq as board_title_seq "
-					+ "from notification n "
-					+ "inner join board_comment bc on n.comment_seq = bc.seq "
-					+ "inner join board b on n.board_seq = b.seq "
-					+ "inner join member m on n.member_sender_seq = m.seq "
-					+ "where "
-					+ "    n.member_receiver_seq = ? "
-					+ "    and bc.active = 'y' "
-					+ "	   and n.checked = 'n' ";
+			String memberSeq = option.get("memberSeq");
+			String begin = option.get("begin");
+			String end = option.get("end");
 			
+			
+			String sql = "SELECT * "
+					+ "FROM( "
+					+ "    SELECT "
+					+ "        rownum AS rn, "
+					+ "        m.nickname AS member_nickname, "
+					+ "        m.profile AS member_profile, "
+					+ "        n.created AS alarm_created, "
+					+ "        n.message AS message, "
+					+ "        n.board_seq AS board_seq, "
+					+ "        n.comment_seq AS comment_seq, "
+					+ "        n.checked AS alarm_checked, "
+					+ "        n.seq AS memberAlarmSeq, "
+					+ "        b.board_title_seq AS board_title_seq "
+					+ "    FROM "
+					+ "        notification n "
+					+ "        INNER JOIN board_comment bc ON n.comment_seq = bc.seq "
+					+ "        INNER JOIN board b ON n.board_seq = b.seq "
+					+ "        INNER JOIN member m ON n.member_sender_seq = m.seq "
+					+ "    WHERE "
+					+ "        n.member_receiver_seq = ? "
+					+ "        AND bc.active = 'y' "
+					+ "        AND n.checked = 'n' "
+					+ ") ";
+			if(begin != null && end != null) {
+				sql += String.format("WHERE rn BETWEEN %s and %s", begin, end);
+			}
+		
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, memberSeq);
 			rs = pstmt.executeQuery();
@@ -96,7 +114,7 @@ public class MemberAlarmDAO {
 				memberAlarmDTO.setMemberAlarmSeq(rs.getString("memberAlarmSeq"));
 				memberAlarmDTO.setMemberNickname(rs.getString("member_nickname"));
 				memberAlarmDTO.setMemberProfile(rs.getString("member_profile"));
-				memberAlarmDTO.setCreated(rs.getString("alaram_created"));
+				memberAlarmDTO.setCreated(rs.getString("alarm_created"));
 				memberAlarmDTO.setMessage(rs.getString("message"));
 				memberAlarmDTO.setBoardSeq(rs.getString("board_seq"));
 				memberAlarmDTO.setCommentSeq(rs.getString("comment_seq"));
@@ -141,10 +159,12 @@ public class MemberAlarmDAO {
 		
 		try {
 			String sql = "update notification set checked = 'y' "
-					+ "where member_receiver_seq = ? and seq = ? ";
+					+ "where member_receiver_seq = ?";
+			sql += String.format(" and seq in(%s) ", memberAlarmDTO.getMemberAlarmSeq());
+			
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, memberAlarmDTO.getMemberReceiverSeq());
-			pstmt.setString(2, memberAlarmDTO.getMemberAlarmSeq());
+			
 			if(pstmt.executeUpdate() < 1) {
 				result = false;
 				throw new SQLException("알람전송실패");

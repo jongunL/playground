@@ -28,6 +28,7 @@ public class BoardComment extends HttpServlet {
 		HashMap<String, String> auth = (HashMap<String, String>)Auth.getAuth(req);
 		String boardTitleSeq = req.getParameter("boardTitleSeq");
 		String boardSeq = req.getParameter("boardSeq");
+		String cmt = req.getParameter("cmt");
 		String memberSeq = null;
 
 		//comment 댓글 가공을 위해 로그인 여부확인
@@ -100,13 +101,13 @@ public class BoardComment extends HttpServlet {
 		resp.setContentType("application/json");
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("commentList", new Gson().toJsonTree(commentList));
+		jsonObject.put("nowPage", nowPage);
 		jsonObject.put("pageSize", pageSize);
 		jsonObject.put("totalPage", totalPage);
-		jsonObject.put("nowPage", nowPage);
-		jsonObject.put("sort", commentSortType);
 		jsonObject.put("totalCount", totalCount);
+		jsonObject.put("sort", commentSortType);
 		PrintWriter writer = resp.getWriter();
 		writer.write(jsonObject.toString());
 	}
-
+	
 }
