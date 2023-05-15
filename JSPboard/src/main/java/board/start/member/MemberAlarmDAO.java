@@ -143,7 +143,7 @@ public class MemberAlarmDAO {
 					+ "    and bc.active = 'y' "
 					+ "    and n.checked = 'n' ";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, memberSeq);
+			pstmt.setString(1, memberSeq);			
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				result = rs.getInt("count");

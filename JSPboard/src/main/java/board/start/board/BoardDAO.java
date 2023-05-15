@@ -691,17 +691,74 @@ public class BoardDAO {
 		boolean result = false;
 		
 		try {
-			String sql = "update board set active = 'n' where seq = ? and member_seq = ?";
+			String sql = "update board set active = 'n' where member_seq = ? and ";
+			sql += String.format(" seq in(%s) ", boardDTO.getBoardSeq());
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, boardDTO.getBoardSeq());
-			pstmt.setString(2, boardDTO.getMemberSeq());
+			pstmt.setString(1, boardDTO.getMemberSeq());
 			if(pstmt.executeUpdate() > 0) {
 				result = true;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}	
+		return result;
+	}
+
+	public List<BoardDTO> getMemberAuthorBoardList(Map<String, String> option) {
+		List<BoardDTO> result = null;
+		
+		try {
+			String sql = "select * "
+					+ "from ( "
+					+ "    select "
+					+ "    rownum as rn, b.seq as board_seq, b.subject as board_subject, b.regdate as board_regdate, "
+					+ "    bt.seq as board_title_seq, bt.board_title as board_title, bt.board_img as board_title_img "
+					+ "    from board b "
+					+ "    inner join board_title bt on b.board_title_seq = bt.seq "
+					+ "    where b.active = 'y' and b.member_seq = ? "
+					+ ") "
+					+ "where rn between ? and ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, option.get("memberSeq"));
+			pstmt.setString(2, option.get("begin"));
+			pstmt.setString(3, option.get("end"));
+			rs = pstmt.executeQuery();
+			
+			result = new ArrayList<>();
+			while(rs.next()) {
+				BoardDTO boardDTO = new BoardDTO();
+				boardDTO.setBoardSeq(rs.getString("board_seq"));
+				boardDTO.setBoardSubject(rs.getString("board_subject"));
+				boardDTO.setBoardRegdate(rs.getString("board_regdate"));
+				boardDTO.setBoardTitleSeq(rs.getString("board_title_seq"));
+				boardDTO.setBoardTitle(rs.getString("board_title"));
+				boardDTO.setBoardTitleImg(rs.getString("board_title_img"));
+				result.add(boardDTO);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
+		return result;
+	}
+
+	public int getMemberAuthorBoardCount(String memberSeq) {
+		int result = -1;
+		
+		try {
+			String sql = "select count(*) "
+					+ "from board b "
+					+ "inner join board_title bt on b.board_title_seq = bt.seq "
+					+ "where b.active = 'y' and bt.active = 'y' and b.member_seq = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberSeq);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getInt("count(*)");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 	

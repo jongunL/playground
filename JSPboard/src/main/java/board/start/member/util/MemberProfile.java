@@ -14,7 +14,7 @@ import board.start.member.MemberDAO;
 import board.start.member.MemberDTO;
 import board.start.util.Auth;
 
-@WebServlet({"/member/profile", "/member/alarm"})
+@WebServlet({"/member/profile", "/member/alarm", "/member/board", "/member/comment"})
 public class MemberProfile extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 

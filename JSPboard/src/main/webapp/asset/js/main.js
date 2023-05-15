@@ -61,8 +61,8 @@ function get_alarm_list() {
 		dataType: 'JSON',
 		url: '/member/getAlarm',
 		success: function(result) {		
-			if(result.alarmList.length > 0) {
-				result.alarmList.forEach(function(data) {
+			if(result.list.length > 0) {
+				result.list.forEach(function(data) {
 					create_element(data);
 				});
 			} else {
@@ -74,6 +74,7 @@ function get_alarm_list() {
 		}
 	});
 }
+
 
 function create_element(data) {	
 	console.log(data);
@@ -147,7 +148,7 @@ function check_alarm(num, element) {
 	$.ajax({
 		type: 'POST',
 		data: {
-			notificationSeq : num
+			seq : num
 		},
 		dataType: 'JSON',
 		url: '/member/checkAlarm',
@@ -197,7 +198,6 @@ $(() => {
 		dataType: 'JSON',
 		url: '/member/getAlarmCount',
 		success: function(result) {
-			console.log(result);
 			if(result > 0) {
 				$('#header_alarm_counter').css('display', 'block');
 				$('#header_alarm_counter').text(result > 9 ? '+9' : result);

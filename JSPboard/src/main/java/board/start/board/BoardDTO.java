@@ -13,6 +13,7 @@ public class BoardDTO {
 	private String boardActive;
 	private String boardTitleSeq;
 	private String boardTitle;
+	private String boardTitleImg;
 	private String boardSubTitleSeq;
 	private String boardSubTitle;
 	private String memberSeq;

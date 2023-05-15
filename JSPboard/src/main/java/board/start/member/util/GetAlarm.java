@@ -46,7 +46,7 @@ public class GetAlarm extends HttpServlet {
 			alarmList = getAlarmNoPaging(memberSeq);
 		}
 
-		jsonObject.put("alarmList", new Gson().toJsonTree(alarmList));
+		jsonObject.put("list", new Gson().toJsonTree(alarmList));
 		PrintWriter writer = resp.getWriter();
 		writer.write(jsonObject.toString());
 	}
@@ -73,6 +73,7 @@ public class GetAlarm extends HttpServlet {
 		int pageSize = 10;	//한 페이지당 출력할 댓글 수 default = 10
 		int totalCount = 0;	//총 알람 수
 		int totalPage = 0;	//총 페이지 수
+		int blockSize = 5;	//페이징 최대 블럭수
 		
 		//현재 유저가 보려고 하는 페이지
 		if(req.getParameter("page") != null && req.getParameter("page") != "") {
@@ -103,6 +104,7 @@ public class GetAlarm extends HttpServlet {
 		jsonObject.put("pageSize", pageSize);
 		jsonObject.put("totalPage", totalPage);
 		jsonObject.put("totalCount", totalCount);
+		jsonObject.put("blockSize", blockSize);
 		
 		return result;
 	}	

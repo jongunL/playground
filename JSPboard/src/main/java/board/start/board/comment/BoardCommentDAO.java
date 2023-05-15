@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import board.start.util.DBUtil;
@@ -270,10 +271,10 @@ public class BoardCommentDAO {
 		
 		try {
 			String sql = "update board_comment set active = 'n' "
-					+ " where seq = ?  and comment_auth_seq = ?";
+					+ " where comment_auth_seq = ? and ";
+			sql += String.format(" seq in(%s) ", boardCommentDTO.getBoardCommentSeq());
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, boardCommentDTO.getBoardCommentSeq());
-			pstmt.setString(2, boardCommentDTO.getMemberSeq());
+			pstmt.setString(1, boardCommentDTO.getMemberSeq());
 			if(pstmt.executeUpdate() > 0) result = true;
 			
 		} catch (Exception e) {
@@ -387,7 +388,73 @@ public class BoardCommentDAO {
 		
 		return result;
 	}
-	
+
+	public List<BoardCommentDTO> getMemberAuthorCommentList(Map<String, String> option) {
+		List<BoardCommentDTO> result = null;
+		
+		try {
+			String sql = "select * "
+					+ "from ( "
+					+ "    select "
+					+ "        rownum as rn, "
+					+ "        bt.seq as board_title_seq, "
+					+ "        bt.board_title as board_title, "
+					+ "        bt.board_img as board_title_img, "
+					+ "        b.seq as board_seq, "
+					+ "        bc.seq as board_comment_seq, "
+					+ "        bc.board_comment as board_comment, "
+					+ "        bc.regdate as board_comment_regdate "
+					+ "    from board_comment bc "
+					+ "    inner join board b on bc.board_seq = b.seq "
+					+ "    inner join board_title bt on b.board_title_seq = bt.seq "
+					+ "	   where bc.comment_auth_seq = ? and bc.active = 'y' and b.active = 'y' and bt.active = 'y' "
+					+ ") "
+					+ "where rn between ? and ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, option.get("memberSeq"));
+			pstmt.setString(2, option.get("begin"));
+			pstmt.setString(3, option.get("end"));
+			rs = pstmt.executeQuery();
+			result = new ArrayList<>();
+			while(rs.next()) {
+				BoardCommentDTO boardCommentDTO = new BoardCommentDTO();
+				boardCommentDTO.setBoardTitleSeq(rs.getString("board_title_seq"));
+				boardCommentDTO.setBoardTitle(rs.getString("board_title"));
+				boardCommentDTO.setBoardTitleImg(rs.getString("board_title_img"));
+				boardCommentDTO.setBoardSeq(rs.getString("board_seq"));
+				boardCommentDTO.setBoardCommentSeq(rs.getString("board_comment_seq"));
+				boardCommentDTO.setBoardComment(rs.getString("board_comment"));
+				boardCommentDTO.setBoardCommentRegdate(rs.getString("board_comment_regdate"));
+				result.add(boardCommentDTO);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
+	public int getMemberAuthorCommentCount(String memberSeq) {
+		int result = -1;
+		
+		try {
+			String sql = "select count(*) "
+					+ "from board_comment bc "
+					+ "inner join board b on bc.board_seq = b.seq "
+					+ "inner join board_title bt on b.board_title_seq = bt.seq "
+					+ "where bc.comment_auth_seq = ? and bc.active = 'y' and b.active = 'y' and bt.active = 'y' ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberSeq);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getInt("count(*)");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
 	
 }
 

@@ -11,6 +11,8 @@ public class BoardCommentDTO {
 	private boolean authorCk;
 	private String boardSeq;
 	private String boardTitleSeq;
+	private String boardTitle;
+	private String boardTitleImg;
 	private String boardAuthSeq;
 	private String memberSeq;
 	private String memberNickname;
