@@ -549,6 +549,7 @@ public class BoardDAO {
 	public ArrayList<MainBoardDTO> getMainBoardList() {
 		ArrayList<MainBoardDTO> result = null;
 		try {
+			/*
 			String sql = 
 				    "WITH best_board_list  AS ( "
 				    + "    SELECT 1 as board_title_seq, best.seq as board_seq, best.subject as subject, best.regdate as regdate, COUNT(bc.seq) as board_comment_num "
@@ -572,7 +573,7 @@ public class BoardDAO {
 				    + ") "
 				    + "SELECT title_seq, title, board_seq, subject, regdate, board_comment_num "
 				    + "FROM ( "
-				    + "    SELECT tlist.seq as title_seq, tlist.board_title as title, b.seq as board_seq, b.subject as subject, b.regdate as regdate, COUNT(bc.seq) as board_comment_num,\r\n"
+				    + "    SELECT tlist.seq as title_seq, tlist.board_title as title, b.seq as board_seq, b.subject as subject, b.regdate as regdate, COUNT(bc.seq) as board_comment_num, "
 				    + "    ROW_NUMBER() OVER (PARTITION BY tlist.seq ORDER BY b.regdate DESC) AS rn "
 				    + "    FROM "
 				    + "        ( "
@@ -609,19 +610,64 @@ public class BoardDAO {
 				    + ") "
 				    + "WHERE rn <= ? "
 				    + "ORDER BY title_seq ASC, regdate DESC";
+			*/
+			
+			String sql = "select last_rs.board_title_seq, last_rs.board_title, last_rs.board_seq, last_rs.board_subject, last_rs.board_regdate, count(bc.seq) as board_comment_num "
+					+ "from ( "
+					+ "    select row_number() over(partition by board_title_seq order by board_regdate desc) as rn, rs_with_rn.* "
+					+ "    from ( "
+					+ "        select * "
+					+ "        from ( "
+					+ "            select bt.seq as board_title_seq, bt.board_title as board_title, b.seq as board_seq, b.subject as board_subject, b.regdate as board_regdate "
+					+ "            from( "
+					+ "                select board_title_seq "
+					+ "                from ( "
+					+ "                    select bt.seq as board_title_seq, count(bt.seq) as cnt "
+					+ "                    from board_title bt "
+					+ "                    left join board b on bt.seq = b.board_title_seq "
+					+ "                    where bt.seq <> 1 and bt.active = 'y' "
+					+ "                    group by bt.seq "
+					+ "                    order by cnt desc, board_title_seq asc "
+					+ "                ) where rownum <= ? "
+					+ "            ) tn "
+					+ "            left join board_title bt on tn.board_title_seq = bt.seq "
+					+ "            left join board b on tn.board_title_seq = b.board_title_seq and b.active = 'y' "
+					+ "            union all "
+					+ "            select bt.seq as board_title_seq, bt.board_title as board_title, br.seq as board_seq, br.subject as board_subject, br.regdate as board_regdate "
+					+ "            from board_title bt "
+					+ "            left join( "
+					+ "                select *  "
+					+ "                from ( "
+					+ "                    select 1 as board_title_seq, best.seq, best.subject, best.regdate "
+					+ "                    from( "
+					+ "                        select * "
+					+ "                        from board b "
+					+ "                        where b.thumbs_up >= ? and b.active = 'y' "
+					+ "                    ) best "
+					+ "                ) "
+					+ "            ) br on bt.seq = br.board_title_seq "
+					+ "            where bt.seq = 1 and bt.active = 'y' "
+					+ "        ) rs "
+					+ "    ) rs_with_rn "
+					+ ") last_rs "
+					+ "left join board_comment bc on last_rs.board_seq = bc.board_seq and bc.active = 'y' "
+					+ "where rn < ? "
+					+ "group by last_rs.board_title_seq, last_rs.board_title, last_rs.board_seq, last_rs.board_subject, last_rs.board_regdate "
+					+ "order by last_rs.board_title_seq, last_rs.board_regdate desc ";
+			
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, minBestBoardThumbs);
-			pstmt.setInt(2, mainBoardAmount);
+			pstmt.setInt(1, mainBoardAmount);
+			pstmt.setInt(2, minBestBoardThumbs);
 			pstmt.setInt(3, maxMainBoardColumn);
 			rs = pstmt.executeQuery();
 			result = new ArrayList<>();
 			while(rs.next()) {
 				MainBoardDTO mainboardDTO = new MainBoardDTO();
-				mainboardDTO.setBoardTitleSeq(rs.getString("title_seq"));
-				mainboardDTO.setBoardTitle(rs.getString("title"));
+				mainboardDTO.setBoardTitleSeq(rs.getString("board_title_seq"));
+				mainboardDTO.setBoardTitle(rs.getString("board_title"));
 				mainboardDTO.setBoardSeq(rs.getString("board_seq"));
-				mainboardDTO.setBoardSubject(rs.getString("subject"));
-				mainboardDTO.setBoardRegdate(rs.getString("regdate"));
+				mainboardDTO.setBoardSubject(rs.getString("board_subject"));
+				mainboardDTO.setBoardRegdate(rs.getString("board_regdate"));
 				mainboardDTO.setBoardCommentCount(rs.getString("board_comment_num"));
 				result.add(mainboardDTO);
 			}
