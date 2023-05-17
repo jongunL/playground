@@ -2,6 +2,8 @@ package board.start.member.account;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -10,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import board.start.member.MemberDAO;
 import board.start.member.MemberDTO;
+import board.start.util.Auth;
 import board.start.util.SHA256;
 
 @WebServlet("/loginCheck")
@@ -23,7 +26,7 @@ public class MemberLoginCheck extends HttpServlet {
 		String id = req.getParameter("id");
 		String pwd = req.getParameter("pwd");
 		boolean success = false;
-		//DB작업
+		
 		if(id != null && pwd != null) {
 			MemberDTO memberDTO = new MemberDTO();
 			memberDTO.setId(id);

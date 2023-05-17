@@ -87,14 +87,17 @@ public class BoardCommentAdd extends HttpServlet {
 				memberReceiverSeq = boardAuthorSeq;
 			}
 			
-			MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
-			MemberAlarmDTO memberAlarmDTO = new MemberAlarmDTO();
-			memberAlarmDTO.setBoardSeq(boardSeq);
-			memberAlarmDTO.setMemberReceiverSeq(memberReceiverSeq);
-			memberAlarmDTO.setMemberSenderSeq(memberSeq);
-			memberAlarmDTO.setCommentSeq(commentSeq);
-			memberAlarmDTO.setMessage(commentAlarmLengthCk(commentResult.getBoardComment()));
-			memberAlramDAO.sendMemberAlarm(memberAlarmDTO);
+			//자기 자신이 아닌경우에 발송
+			if(!memberSeq.equals(memberReceiverSeq)) {
+				MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
+				MemberAlarmDTO memberAlarmDTO = new MemberAlarmDTO();
+				memberAlarmDTO.setBoardSeq(boardSeq);
+				memberAlarmDTO.setMemberReceiverSeq(memberReceiverSeq);
+				memberAlarmDTO.setMemberSenderSeq(memberSeq);
+				memberAlarmDTO.setCommentSeq(commentSeq);
+				memberAlarmDTO.setMessage(commentAlarmLengthCk(commentResult.getBoardComment()));
+				memberAlramDAO.sendMemberAlarm(memberAlarmDTO);
+			}
 		}
 		
 		//코멘트 전송

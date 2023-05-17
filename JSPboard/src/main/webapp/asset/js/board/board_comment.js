@@ -224,6 +224,7 @@ function delete_comment(reply_no, element) {
 					element.addClass('deleted');
 					element.empty();
 					element.append('<div class="deleted_area">삭제된 댓글입니다.</div>');
+					change_cmt_cnt_status(+1);
 				} else if(target_order_no > 1 && target_reply_count == 2) {
 					if(target_reply_list.hasClass('deleted')) {
 						target_reply_list.remove();

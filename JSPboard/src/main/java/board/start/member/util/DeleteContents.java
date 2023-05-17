@@ -59,19 +59,39 @@ public class DeleteContents extends HttpServlet {
 	}
 	
 	private boolean removeComment(String memberSeq, String[] seq) {
+		boolean result = false;
 		BoardCommentDTO boardCommentDTO = new BoardCommentDTO();
 		BoardCommentDAO boardCommentDAO = new BoardCommentDAO();
 		boardCommentDTO.setMemberSeq(memberSeq);
 		boardCommentDTO.setBoardCommentSeq(String.join(",", seq));
-		return boardCommentDAO.deleteComment(boardCommentDTO);
+		result = boardCommentDAO.deleteComment(boardCommentDTO);
+		
+		//댓글을 삭제했으면, 보낸 알람도 함께 삭제한다.
+		if(result == true) {
+			result = false;
+			MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
+			result = memberAlramDAO.deleteMemberAlramByCommentSeq(String.join(",", seq));
+		}
+		
+		return result;
 	}
 
 	private boolean removeBoard(String memberSeq, String[] seq) {
+		boolean result = false;
 		BoardDTO boardDTO = new BoardDTO();
 		BoardDAO boardDAO = new BoardDAO();
 		boardDTO.setMemberSeq(memberSeq);
 		boardDTO.setBoardSeq(String.join(",", seq));
-		return boardDAO.deleteBoard(boardDTO);
+		result = boardDAO.deleteBoard(boardDTO);
+		
+		//게시판을 삭제했으면, 해당 게시판을 통해 보내진 알람을 모두 삭제
+		if(result = true) {
+			result = false;
+			MemberAlarmDAO memberAlarmDAO = new MemberAlarmDAO();
+			result = memberAlarmDAO.deleteMemberAlramByBoardSeq(String.join(",", seq));
+		}
+		
+		return result;
 	}
 
 	private boolean checkAllAlarm(String memberSeq) {

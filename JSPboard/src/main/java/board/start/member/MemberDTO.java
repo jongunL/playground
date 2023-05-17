@@ -2,9 +2,11 @@ package board.start.member;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 public class MemberDTO {
 	private String seq;
 	private String id;

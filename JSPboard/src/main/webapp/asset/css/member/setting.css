@@ -1,0 +1,262 @@
+@import '/asset/css/constants.css';
+
+.member_setting_container > .member_setting_n_bar > ul {
+	display: flex;
+}
+
+.member_profile_container,
+.member_contents_container,
+.member_account_container,
+.member_setting_n_bar > ul > li,
+.member_setting_n_bar > h1 {
+	margin: 0.25rem 0.75rem;
+	margin-top: 0.75rem;
+}
+
+.member_profile_container,
+.member_contents_container,
+.member_account_container {
+	margin-top: 2.25rem;
+}
+
+.member_setting_n_bar > ul > li {
+	cursor: pointer;
+}
+
+.member_setting_n_bar > ul > li.active {
+	border-bottom: 2px solid black;
+}
+
+.member_profile_container > form > .member_profile  > .profile.row {
+	display: flex;
+	margin-bottom: 2rem;
+}
+
+.member_profile  > .profile.row > label {
+	flex: 0 0 25%;
+	max-width: 25%;
+}
+
+.member_profile  > .profile.row > div {
+	flex: 0 0 75%;
+	max-width: 75%;
+}
+
+.profile.row > .profile.img > label > img {
+	width: 3.5rem;
+	height: 3.5rem;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.profile.row > .profile.img > input {
+	display: none;
+}
+
+#profile_nickname {
+	box-sizing: border-box;
+	height: 2.5rem;
+	width: 100%;
+	padding: 0.25rem 0.75rem;
+	margin-bottom: 0.5rem;
+}
+
+#nickname_msg {
+	height: 0.9rem;
+	font-size: 0.9rem;
+}
+
+.setting_btn_area {
+	text-align: right;
+}
+
+.setting_btn_area > button {
+	padding: 0.5rem 1.75rem;
+}	
+
+.member_contents_container > .contents_list {
+	margin-top: 1rem;
+}
+
+.member_contents_container > .contents_list > .row,
+.member_contents_container > .contents_list > .row > .col.contents,
+.member_contents_container > .contents_list > .row > .col {
+	display: flex;
+}
+
+.member_contents_container > .contents_list > .row {
+	flex: 1;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.member_contents_container > .contents_list > .row:last-child {
+	border-bottom: none;
+}
+	
+.member_contents_container > .contents_list > .row > .col.select,
+.member_contents_container > .contents_list > .row > .col.remove {
+	justify-content: center;
+	align-items: center;	
+	flex: 0 0 2.5%;
+	max-width: 2.5%;
+}
+
+.member_contents_container > .contents_list > .row > .col.remove {
+	visibility: hidden;
+}
+
+.member_contents_container > .contents_list > .row:hover > .col.remove {
+	visibility: visible;
+}
+
+.member_contents_container > .contents_list > .row > .col.select > input,
+.contents_list > .row:hover > .col.remove > i {
+	cursor: pointer;
+}
+
+.member_contents_container > .contents_list > .row > .col.contents {
+	cursor: pointer;
+	box-sizing: border-box;
+	align-items: center;	
+	flex: 0 0 95%;
+	max-width: 95%;
+	padding: 0 0.5rem;
+}
+
+.contents_list > .row > .col.contents > .contents_status {
+	margin-left: 0.5rem;
+}
+
+.col.contents > .contents_status > .regdate {
+	margin-top: 0.5rem;
+	font-size: 0.85rem;
+	color: var(--color-hr-dark);
+}
+
+.member_contents_container > .contents_list > .row > .col.contents > img {
+	border-radius: 50%;
+	height: 3.5rem;
+	width: 3.5rem;
+}
+
+.member_contents_container > .contents_btn {
+	display: none;
+}
+
+.member_contents_container > .contents_btn.active {
+	display: block;
+}
+
+.contents_paging {
+	display: none;
+}
+
+.contents_paging.active {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 1.25rem;
+}
+
+.contents_paging.active > button,
+.contents_paging.active > .contents_paging_list > span {
+	padding: 0.25rem;
+	margin: 0 0.15rem;
+	cursor: pointer;
+}
+
+.member_account_container.before {
+	display: flex;
+	justify-content: center;
+}
+
+.member_account_container > .member_account_login_form {
+	flex: 1;
+	max-width: 70%;
+	border: 1px solid #aaa;
+	border-radius: 5px;
+	box-sizing: border-box;
+	padding: 1rem 0.75rem;
+}
+
+.member_account_login_form > .account_info > h1 {
+	font-weight: normal;
+	font-size: 1.5rem;
+}
+
+.member_account_login_form > .account_info > div {
+	font-size: 0.9rem;
+	color: var(--color-hr-dark);
+}
+
+.member_account_login_form > .account_info > div,
+.member_account_login_form > .account_btn {
+	margin-top: 0.75rem;
+}
+
+.member_account_login_form > .account_input {
+	margin-top: 1.25rem;
+}
+
+.member_account_login_form > .account_input > input {
+	padding: 0.25rem 0.5rem;
+	box-sizing: border-box;
+	height: 2.5rem;
+	width: 100%;
+}
+
+.member_account_login_form > .account_btn {
+	text-align: right;
+}
+
+.member_account_login_form > .account_btn > button {
+	box-sizing: border-box;
+	padding: 0.5rem 1.5rem;
+}
+
+.member_account_container.after > .mac.row {
+	border-bottom: 1px solid #aaa;
+}
+
+.member_account_container.after > .mac.row:last-child {
+	border-bottom: none; 
+}
+
+.member_account_container.after > .mac.row > h1 {
+	font-weight: normal;
+}
+
+.member_account_container.after > .mac.row > h1 > i {
+	margin-left: 0.25rem;
+}
+
+.member_account_container.after > .mac.row > div {
+	display: flex;
+	margin-top: 1rem;
+	align-items: center;
+}
+
+.member_account_container.after > .mac.row .mac.col {
+	box-sizing: border-box;
+	padding: 0.25rem 0;
+}
+
+.member_account_container.after > .mac.row .mac.col:first-child {
+	flex: 0 0 25%;
+}
+
+.member_account_container.after > .mac.row .mac.col:last-child {
+	flex: 0 0 75%;
+}
+
+.member_security_btn > button {
+	box-sizing: border-box;
+	padding: 0.5rem 0.75rem;
+}
+
+@media screen and (max-width: 1000px) {
+	.member_account_container.before > .member_account_form {
+		max-width: 100%;
+	}
+}

@@ -268,4 +268,48 @@ public class MemberDAO {
 		return result;
 	}
 
+	public String getMemberIdBySeq(String memberSeq) {
+		String result = null;
+		
+		try {
+			String sql = "select id from member where seq = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberSeq);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getString("id");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
+	public boolean updateMemberPassword(MemberDTO memberDTO) {
+		boolean result = false;
+		
+		try {
+			System.out.println(memberDTO.getPwd());
+			System.out.println(memberDTO.getSeq());
+			System.out.println(memberDTO.getId());
+			
+			String sql = "update member set pwd = ? where seq = ? and id = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, memberDTO.getPwd());
+			pstmt.setString(2, memberDTO.getSeq());
+			pstmt.setString(3, memberDTO.getId());
+
+			if( pstmt.executeUpdate() > 0) {
+				result = true;
+			} else {
+				throw new SQLException("비밀번호 변경실패");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
 }

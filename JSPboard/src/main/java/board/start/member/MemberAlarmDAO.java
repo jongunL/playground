@@ -25,10 +25,10 @@ public class MemberAlarmDAO {
 		boolean result = false;
 		
 		try {
-			String sql = "delete from notification where comment_seq = ?";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, seq);
-			if(pstmt.executeUpdate() > -1) result = true;
+			String sql = "update notification set checked = 'y' where ";
+			sql += String.format("comment_seq in(%s)", seq);
+			stmt = conn.createStatement();
+			if(stmt.executeUpdate(sql) > -1) result = true;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -41,10 +41,10 @@ public class MemberAlarmDAO {
 		boolean result = false;
 		
 		try {
-			String sql = "delete from notification where board_seq = ?";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, seq);
-			if(pstmt.executeUpdate() > -1) result = true;
+			String sql = "update notification set checked = 'y' where ";
+			sql += String.format("board_seq in(%s)", seq);
+			stmt = conn.createStatement();
+			if(stmt.executeUpdate(sql) > -1) result = true;
 			
 		} catch (Exception e) {
 			e.printStackTrace();

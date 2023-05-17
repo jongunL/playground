@@ -57,7 +57,6 @@ public class BoardCommentDelete extends HttpServlet {
 			result = false;
 			MemberAlarmDAO memberAlramDAO = new MemberAlarmDAO();
 			result = memberAlramDAO.deleteMemberAlramByCommentSeq(memberSeq);
-			
 		}
 
 		resp.setCharacterEncoding("UTF-8");
