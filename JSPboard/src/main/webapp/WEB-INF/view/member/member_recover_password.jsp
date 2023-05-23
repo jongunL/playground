@@ -6,15 +6,14 @@
 <title>PlayGround</title>
 <%@include file="/WEB-INF/view/inc/asset.jsp" %>
 <style>	
-
-	.change_pwd_container {
+	.recover_container {
 		display: flex;
 		justify-content: center;
 		margin: 0.25rem 0.75rem;
 		margin-top: 0.75rem;
 	}
-
-	.change_pwd_container > .change_pwd_form {
+	
+	.recover_container > .recover_form {
 		flex: 1;
 		max-width: 70%;
 		border: 1px solid #aaa;
@@ -23,62 +22,78 @@
 		padding: 1rem 0.75rem;
 	}
 	
-	.change_pwd_container > .change_pwd_form > h1,
-	.change_pwd_container > .change_pwd_form > .change_pwd_input {
+	.recover_container > .recover_form > .recover.row {
 		box-sizing: border-box;
 		padding: 0.5rem 1.25rem;
 	}
 	
-	.change_pwd_container > .change_pwd_form > h1 {
+	.recover_container > .recover_form > .recover.row.i {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		margin-top: 1rem;
+	}
+
+	.recover_form > .recover.row.h > h1 {
 		font-weight: normal;
 		font-size: 1.5rem;
 	}
+
 	
-	.change_pwd_container > .change_pwd_form > .change_pwd_input {
-		margin-top: 1rem;
+	.recover_form > .recover_btn {
+		margin-top: 0.75rem;
+		text-align: right;
 	}
 	
-	.change_pwd_form > .change_pwd_input > .cpi.row {
+	.recover_form > .recover_btn > button {
+		padding: 0.5rem 1.75rem;
+	}
+	
+	.recover_form > .recover.row.i > div {
 		display: flex;
 		flex: 1;
-		margin-top: 1.25rem;
+		margin-top: 0.75rem;
 	}
 	
-	.change_pwd_form > .change_pwd_input > .cpi.row > label {
-		flex: 0 0 25%;
+	.recover_form > .recover.row.i > div:first-child {
 		margin-top: 0;
 	}
 	
-	.change_pwd_form > .change_pwd_input > .cpi.row > div {
+	.recover.row.i > div > label {
+		box-sizing: border-box;
+		flex: 0 0 25%;
+		padding: 0.25rem 0;
+	}
+	
+	
+	.recover.row.i > div > div {
 		flex: 0 0 75%;
 	}
 	
-	.cpi.row > div > input {
+	.recover.row.i > div > div:first-child {
+		margin-top: 0rem;
+	}
+	
+	.recover.row.i > div > div > input {
 		box-sizing: border-box;
 		width: 100%;
 		height: 2.5rem;
+		padding: 0.25rem 0.5rem;
 	}
 	
-	.cpi.row > div > div {
+	.recover_form > .recover.row.h > div,
+	.recover.row.i > div > div > div {
 		margin-top: 0.25rem;
 		font-size: 0.9rem;
 		color: var(--color-hr-dark);
 	}
 	
-	.change_pwd_form > .change_pwd_input > .change_pwd_btn {
-		margin-top: 0.75rem;
-		text-align: right;
-	}
-	
-	.change_pwd_input > .change_pwd_btn > button {
-		padding: 0.5rem 1.75rem;
-	}
-	
 	@media screen and (max-width: 1000px) {
-	.change_pwd_container > .change_pwd_form {
-		max-width: 100%;
+		.recover_container > .recover_form {
+			max-width: 100%;
+		}
 	}
-}	
+	
 </style>
 </head>
 <body>
@@ -87,34 +102,38 @@
 		<div class="content_wrapper">
 			<article>
 				<div class="board_article">
-					<div class="change_pwd_container">
-						<form action="javascript:;" method="POST" class="change_pwd_form">
-							<h1>PlayGround 비밀번호 변경</h1>
-							<div class="change_pwd_input">
-								<div class="cpi row">
-									<label>현재 비밀번호</label>
-									<div>
-										<input type="password" name="pwd" id="pwd">
-										<div id="pwd_msg">현재 비밀번호를 입력해주세요.</div>
-									</div>
+					<div class="recover_container">
+						<form action="javascript:;" method="POST" class="recover_form">
+							<input type="hidden" name="code" value="${code}">
+							<div class="recover row h">
+								<h1>비밀번호 변경</h1>
+								<div>
+									<c:if test="${active eq 'y'}">
+										계정 비밀번호를 변경합니다.
+									</c:if>
+									<c:if test="${active eq 'n' }">
+										비활성화된 계정입니다. 비밀번호 변경시 다시 활성화시킬 수 있습니다.
+									</c:if>
 								</div>
-								<div class="cpi row">
-									<label>변경할 비밀번호</label>
+							</div>
+							<div class="recover row i">
+								<div>
+									<label>변경비밀번호</label>
 									<div>
-										<input type="password" name="change_pwd" id="pwd1">
+										<input type="password" name="pwd1" id="pwd1">
 										<div id="pwd1_msg">변경할 비밀번호를 입력해주세요.</div>
 									</div>
 								</div>
-								<div class="cpi row">
-									<label>비밀번호 확인</label>
+								<div>
+									<label>변경 비밀번호 확인</label>
 									<div>
-										<input type="password" name="change_pwd_ck" id="pwd2">
-										<div id="pwd2_msg">비밀번호 확인을 입력해주세요.</div>
+										<input type="password" name="pwd2" id="pwd2">
+										<div id="pwd2_msg">변경할 비밀번호를 입력해주세요,</div>
 									</div>
 								</div>
-								<div class="change_pwd_btn">
-									<button id="change_pwd_submit_btn">변경</button>						
-								</div>
+							</div>
+							<div class="recover_btn">
+								<button>변경하기</button>
 							</div>
 						</form>
 					</div>
@@ -126,49 +145,56 @@
 	</div>
 	<script type="text/javascript" src="/asset/js/view_mode.js"></script>
 	<script type="text/javascript">
-		$('#change_pwd_submit_btn').on('click', () => {
-			let result = pwd_v_check();
-			if(result) {
-				$('.change_pwd_form').attr('action', '/member/changePasswordOk').submit();
+		$(() => {
+			if(${result ne true}) {
+				alert('잘못된 요청입니다.');
+				location.href = '/';	
 			}
 		});
 		
-		function pwd_v_check() {
-			let pwd = $('#pwd');
+		$('.recover_form').on('submit', function() {
 			let pwd1 = $('#pwd1');
 			let pwd2 = $('#pwd2');
-			let val_ck = pwd_validation_ck(pwd1.val());
-			let eq_ck = pwd_eq_ck(pwd1.val(), pwd2.val());
+			let pwd1_ck = pwd_validation_ck(pwd1.val());
+			let pwd2_ck = pwd_eq_ck(pwd1.val(), pwd2.val());
 			
-			if(!pwd_validation_ck(pwd.val())) {
-				pwd.focus();
-				if(pwd.val().length <= 0) $('#pwd_msg').text('필수 정보입니다.').css('color', 'red');
-				else $('#pwd_msg').text('잘못된 비밀번호 형식입니다.').css('color', 'red');
-				return false;
-			} else if(pwd_eq_ck(pwd.val(), pwd1.val())) {
+			if(!pwd1_ck) {
+				pwd_validation_msg(pwd1, pwd1.val(), pwd1_ck);
 				pwd1.focus();
-				$('#pwd_msg').text('현재 비밀번호와 변경 비밀번호와 일치해서는 안됩니다.').css('color', 'red');
-				return false;
-			} else {
-				$('#pwd_msg').text('현재 비밀번호를 입력해주세요.').css('color', 'var(--color-hr-dark)');
-			}
-			
-			if(!val_ck) {
-				pwd1.focus();
-				pwd_validation_msg(pwd1, pwd1.val(), val_ck);
-				return false;
-			} else if(!eq_ck) {
+			} else if(!pwd2_ck) {
+				pwd_eq_msg(pwd2, pwd2.val(), pwd2_ck);
 				pwd2.focus();
-				pwd_eq_msg(pwd2, pwd2.val(), eq_ck);
-				return false;
+			} else {
+				member_recover_submit();
 			}
-			
-			return true;
+		});
+		
+		function member_recover_submit() {
+			$.ajax({
+				url: '/member/recoverPwOk',
+				type: 'POST',
+				data: $('.recover_form').serialize(),
+				dataType: 'JSON',
+				success: function(result) {
+					console.log(result);
+					if(result) {
+						if(confirm('로그인 페이지로 이동하시겠습니까?')) {
+							location.href = '/login';
+						} else {
+							location.href = '/';
+						}
+					} else {
+						alert('비밀번호 변경에 실패했습니다.');
+					}
+				},
+				error: function(a, b, c) {
+					console.log(a, b, c);
+				}
+			});
 		}
 		
-		$('#pwd, #pwd1, #pwd2').on('blur keyup', function(e) {
+		$('#pwd1, #pwd2').on('blur keyup', function(e) {			
 			if(e.keyCode !== 9 && e.which !== 9) {
-				let pwd = $('#pwd');
 				let pwd1 = $('#pwd1');
 				let pwd2 = $('#pwd2');
 								
@@ -194,6 +220,7 @@
 		
 		function pwd_validation_msg(target, val, flag) {
 			let msg = $(target.selector + '_msg');
+			
 			if(flag) {
 				msg.text('사용가능한 비밀번호입니다').css('color', 'green');
 			} else {

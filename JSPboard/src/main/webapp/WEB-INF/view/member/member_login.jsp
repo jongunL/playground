@@ -42,7 +42,7 @@
 							</div>
 							<!-- 부가 서비스 양식 -->
 							<div class="link_area">
-								<div><a href="/findAccount">아이디/비밀번호 찾기</a></div>
+								<div><a href="/member/findAccount">아이디/비밀번호 찾기</a></div>
 								<div><a href="/register">회원가입 하기</a></div>
 							</div>
 						</form>

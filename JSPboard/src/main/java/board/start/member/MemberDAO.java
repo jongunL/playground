@@ -37,11 +37,6 @@ public class MemberDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 			try { conn.rollback(); } catch (SQLException e1) { e.printStackTrace(); }
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
 		}
 		
 		return result;
@@ -72,11 +67,6 @@ public class MemberDAO {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
 		}
 		
 		return result;
@@ -124,11 +114,6 @@ public class MemberDAO {
 			}	
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
 		}
 		
 		return result;
@@ -151,12 +136,7 @@ public class MemberDAO {
 			}	
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
-		}
+		} 
 		
 		return result;
 	}//duplicationCheckById
@@ -177,12 +157,7 @@ public class MemberDAO {
 			}	
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
-		}
+		} 
 		
 		return result;
 	}//duplicationCheckByEmail
@@ -203,12 +178,7 @@ public class MemberDAO {
 			}	
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try { if(rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(stmt != null) stmt.close(); } catch (Exception e) { e.printStackTrace(); }
-			try { if(rs != null) conn.close(); } catch (Exception e) { e.printStackTrace(); }
-		}
+		} 
 		
 		return result;
 	}//duplicationCheckByNickname
@@ -290,16 +260,11 @@ public class MemberDAO {
 		boolean result = false;
 		
 		try {
-			System.out.println(memberDTO.getPwd());
-			System.out.println(memberDTO.getSeq());
-			System.out.println(memberDTO.getId());
-			
-			String sql = "update member set pwd = ? where seq = ? and id = ? ";
+			String sql = "update member set pwd = ?, active = 'y' where seq = ? and id = ? ";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, memberDTO.getPwd());
 			pstmt.setString(2, memberDTO.getSeq());
 			pstmt.setString(3, memberDTO.getId());
-
 			if( pstmt.executeUpdate() > 0) {
 				result = true;
 			} else {
@@ -309,6 +274,23 @@ public class MemberDAO {
 			e.printStackTrace();
 		}
 		
+		return result;
+	}
+
+	public String findMemberIdByEmail(String email) {
+		String result = null;
+		
+		try {
+			String sql = "select id from member where email = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, email);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				result = rs.getString("id");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 

@@ -29,8 +29,8 @@
 				location.href = '/';
 			</c:when>
 			<c:when test="${(success eq true) and (active eq 'n')}">
-				if(confirm('비활성화된 계정입니다. 다시 활성화 하시겠습니까?')) {
-					location.href = '/memberActive';
+				if(confirm('비활성화된 계정입니다. 비밀번호 변경시 다시 활성화 할 수 있습니다. 다시 활성화 하시겠습니까?')) {
+					location.href = '/member/recoverPw?code=${code}&active=${active}';
 				} else {
 					location.href = '/';
 				}

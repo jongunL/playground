@@ -95,6 +95,7 @@ public class MemberLoginOk extends HttpServlet {
 			} else if(result != null && result.getActive().equals("n")) {
 				req.setAttribute("success", true);
 				req.setAttribute("active", result.getActive());
+				req.setAttribute("code", result.getEmail());
 			}
 		}
 		
